@@ -1,0 +1,30 @@
+[
+  {
+    "agentType":"agentExplo",
+    "agentName": "Explo1",
+    "agentClass":"dummies.explo.ExploreCoopAgent2",
+    "agentInitialContainer":"container2",
+    "communicationRange": 10,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1,
+    "userParameters": ["Explo2"]
+  },
+  {
+    "agentType":"HumanControlled",
+    "agentName": "Explo2",
+    "agentClass":"dummies.ControlledAgent2",
+    "agentInitialContainer":"container2",
+    "communicationRange": 10,
+    "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1,
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1,
+    "userParameters": ["Explo1"]
+  }
+]

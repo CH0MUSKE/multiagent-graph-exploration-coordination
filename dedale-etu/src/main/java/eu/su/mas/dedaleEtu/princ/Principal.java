@@ -48,6 +48,7 @@ public class Principal {
 
 	public static void main(String[] args){
 
+
 		if(ConfigurationFile.COMPUTERisMAIN){
 			//Whe should create the Platform and the GateKeeper, whether the platform is distributed or not 
 
@@ -339,7 +340,7 @@ public class Principal {
 		EntityCharacteristics ec=(EntityCharacteristics) agentCaracteristics[0];
 		Objects.requireNonNull(ec);
 
-		//create the agent on the container given in parameter.
+		//create the agent on the container given in parametoer.
 		//TODO remove initialContainer from the parameters of the method and get it from the agentCaracteristics, check if already existing, if true get, if false create then add the agent.
 		AgentController ag=null;
 		try {
@@ -352,9 +353,7 @@ public class Principal {
 		return ag;
 	}
 	
-	
-
-}
+} 
 
 
 

@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.EdgeRejectedException;
@@ -68,7 +69,7 @@ public class MapRepresentation implements Serializable {
 	private Integer nbEdges;//used to generate the edges ids
 	private String agentName;//name of the agent the map belongs to
 
-	private SerializableSimpleGraph<String, MapAttribute> sg;//used as a temporary dataStructure during migration
+	private SerializableSimpleGraph<String, NodeInfo> sg;//used as a temporary dataStructure during migration
 	
 	/**
 	 * @deprecated Prefer the use of MapRepresentation(String agentName)
@@ -121,9 +122,12 @@ public class MapRepresentation implements Serializable {
 		}else{
 			n=this.g.getNode(id);
 		}
+		long now = System.currentTimeMillis();
 		n.clearAttributes();
 		n.setAttribute("ui.class", mapAttribute.toString());
 		n.setAttribute("ui.label",id);
+		n.setAttribute("lastUpdate", now);
+		
 	}
 
 	/**
@@ -229,11 +233,13 @@ public class MapRepresentation implements Serializable {
 	 * Before sending the agent knowledge of the map it should be serialized.
 	 */
 	private void serializeGraphTopology() {
-		this.sg= new SerializableSimpleGraph<String,MapAttribute>();
+		this.sg= new SerializableSimpleGraph<String,NodeInfo>();
 		Iterator<Node> iter=this.g.iterator();
 		while(iter.hasNext()){
 			Node n=iter.next();
-			sg.addNode(n.getId(),MapAttribute.valueOf((String)n.getAttribute("ui.class")));
+			MapAttribute attr = MapAttribute.valueOf((String) n.getAttribute("ui.class"));
+			long ts = (long) n.getAttribute("lastUpdate");
+			sg.addNode(n.getId(), new NodeInfo(attr, ts));
 		}
 		Iterator<Edge> iterE=this.g.edges().iterator();
 		while (iterE.hasNext()){
@@ -245,7 +251,7 @@ public class MapRepresentation implements Serializable {
 	}
 
 
-	public synchronized SerializableSimpleGraph<String,MapAttribute> getSerializableGraph(){
+	public synchronized SerializableSimpleGraph<String,NodeInfo> getSerializableGraph(){
 		serializeGraphTopology();
 		return this.sg;
 	}
@@ -261,8 +267,10 @@ public class MapRepresentation implements Serializable {
 		openGui();
 
 		Integer nbEd=0;
-		for (SerializableNode<String, MapAttribute> n: this.sg.getAllNodes()){
-			this.g.addNode(n.getNodeId()).setAttribute("ui.class", n.getNodeContent().toString());
+		for (SerializableNode<String, NodeInfo> n: this.sg.getAllNodes()){
+			this.g.addNode(n.getNodeId()).setAttribute("ui.class", n.getNodeContent().statut.toString());
+			this.g.addNode(n.getNodeId()).setAttribute("lastUpdate", n.getNodeContent().lastUpdate);
+			
 			for(String s:this.sg.getEdges(n.getNodeId())){
 				this.g.addEdge(nbEd.toString(),n.getNodeId(),s);
 				nbEd++;
@@ -331,11 +339,11 @@ public class MapRepresentation implements Serializable {
 
 	}
 	
-	public void mergeMap(SerializableSimpleGraph<String, MapAttribute> sgreceived) {
+	public void mergeMap(SerializableSimpleGraph<String, NodeInfo> sgreceived) {
 		//System.out.println("You should decide what you want to save and how");
 		//System.out.println("We currently blindy add the topology");
 
-		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
+		for (SerializableNode<String, NodeInfo> n: sgreceived.getAllNodes()){
 			//System.out.println(n);
 			boolean alreadyIn =false;
 			//1 Add the node
@@ -348,18 +356,29 @@ public class MapRepresentation implements Serializable {
 			}
 			if (!alreadyIn) {
 				newnode.setAttribute("ui.label", newnode.getId());
-				newnode.setAttribute("ui.class", n.getNodeContent().toString());
+				newnode.setAttribute("ui.class", n.getNodeContent().statut.toString());
+				newnode.setAttribute("lastUpdate", n.getNodeContent().lastUpdate); 
 			}else{
 				newnode=this.g.getNode(n.getNodeId());
 				//3 check its attribute. If it is below the one received, update it.
-				if (((String) newnode.getAttribute("ui.class"))==MapAttribute.closed.toString() || n.getNodeContent().toString()==MapAttribute.closed.toString()) {
-					newnode.setAttribute("ui.class",MapAttribute.closed.toString());
+				long curr_time = (long)newnode.getAttribute("lastUpdate");
+				NodeInfo infoRecue = n.getNodeContent();
+				
+				long new_time = infoRecue.lastUpdate;
+				String currentStatus = (String) newnode.getAttribute("ui.class");
+				boolean tryingToReopen = currentStatus.equals(MapAttribute.closed.toString())
+						&& infoRecue.statut.equals(MapAttribute.open);
+				
+				if (new_time > curr_time && !tryingToReopen){
+					newnode.setAttribute("ui.class", infoRecue.statut.toString());
+					newnode.setAttribute("lastUpdate", new_time);
 				}
+				
 			}
 		}
 
 		//4 now that all nodes are added, we can add edges
-		for (SerializableNode<String, MapAttribute> n: sgreceived.getAllNodes()){
+		for (SerializableNode<String, NodeInfo> n: sgreceived.getAllNodes()){
 			for(String s:sgreceived.getEdges(n.getNodeId())){
 				addEdge(n.getNodeId(),s);
 			}
@@ -377,6 +396,52 @@ public class MapRepresentation implements Serializable {
 				.findAny()).isPresent();
 	}
 
+	public SerializableSimpleGraph<String, NodeInfo> createSubGraph(Long lastConv) {
+		// 1. Initialisation du graphe sérialisable vide
+		SerializableSimpleGraph<String, NodeInfo> subGraph = new SerializableSimpleGraph<String, NodeInfo>();
+
+		// Si lastConv est null (premier échange), on prend 0 pour tout envoyer
+		long threshold = (lastConv == null) ? 0L : lastConv;
+
+		// Liste temporaire pour savoir quels nœuds on a gardés (utile pour les arêtes)
+		List<String> addedNodes = new ArrayList<>();
+
+		// 2. Premier passage : On ajoute tous les nœuds mis à jour
+		this.g.nodes().forEach(n -> {
+			long nodeTs = (long) n.getAttribute("lastUpdate");
+
+			if (nodeTs >= threshold) {
+				MapAttribute attr = MapAttribute.valueOf((String) n.getAttribute("ui.class"));
+				subGraph.addNode(n.getId(), new NodeInfo(attr, nodeTs));
+				addedNodes.add(n.getId());
+			}
+		});
+
+		// 3. Deuxième passage : On ajoute les arêtes
+		// Stratégie : On ajoute une arête si AU MOINS UN des deux nœuds est nouveau
+		// Cela permet de propager les nouvelles connexions vers d'anciens nœuds
+		this.g.edges().forEach(e -> {
+			String idSrc = e.getSourceNode().getId();
+			String idDst = e.getTargetNode().getId();
+
+			if (addedNodes.contains(idSrc) || addedNodes.contains(idDst)) {
+				// On s'assure que les deux nœuds existent dans le sous-graphe 
+				// (sinon le SerializableSimpleGraph risque de râler)
+				if (subGraph.getNode(idSrc) == null) {
+					Node n = e.getSourceNode();
+					subGraph.addNode(idSrc, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate")));
+				}
+				if (subGraph.getNode(idDst) == null) {
+					Node n = e.getTargetNode();
+					subGraph.addNode(idDst, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate")));
+				}
+
+				subGraph.addEdge(e.getId(), idSrc, idDst);
+			}
+		});
+
+		return subGraph;
+	}
 
 
 

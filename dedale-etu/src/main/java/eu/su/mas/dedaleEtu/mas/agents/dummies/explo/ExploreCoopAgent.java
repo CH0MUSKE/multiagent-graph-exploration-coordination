@@ -3,10 +3,12 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 import java.util.ArrayList;
 import java.util.List;
 
+import eu.su.mas.dedale.env.EntityCharacteristics;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.*;
 
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopBehaviour;
+import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 
 import jade.core.behaviours.Behaviour;
@@ -29,7 +31,7 @@ import jade.core.behaviours.Behaviour;
  *  </pre>
  *  
  * @author hc
- *
+ *	
  */
 
 
@@ -52,17 +54,18 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
 		
 		//get the parameters added to the agent at creation (if any)
 		final Object[] args = getArguments();
-		
-		List<String> list_agentNames=new ArrayList<String>();
-		
-		if(args.length==0){
-			System.err.println("Error while creating the agent, names of agent to contact expected");
-			System.exit(-1);
-		}else{
-			int i=2;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
-			while (i<args.length) {
-				list_agentNames.add((String)args[i]);
-				i++;
+		List<String> list_agentNames = new ArrayList<>();
+
+		if (args != null && args.length > 0) {
+			// On récupère la "boîte" de caractéristiques à l'index 0
+			EntityCharacteristics ec = (EntityCharacteristics) args[0];
+
+			// On récupère directement la liste des noms d'agents depuis le JSON
+			List<String> userParams = ec.getUserParameters();
+
+			if (userParams != null && !userParams.isEmpty()) {
+				list_agentNames.addAll(userParams);
+				System.out.println(this.getLocalName() + " contactera : " + list_agentNames);
 			}
 		}
 

@@ -14,6 +14,7 @@ public class ControlledAgent extends AbstractDedaleAgent {
 	private static final long serialVersionUID = 728177281660199801L;
 
 	protected void setup(){
+		System.out.println("aled");
 		super.setup();
 
 		//get the parameters given into the object[]
