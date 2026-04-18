@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import eu.su.mas.dedale.env.Location;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.utils.MessageFactory;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
@@ -14,9 +15,9 @@ import java.util.List;
 public class PingBehaviour extends OneShotBehaviour {
     private static final long serialVersionUID = 9088209402507795289L;
     List<String> agentNames;
-    private ExploreCoopAgent2 myagent;
+    private AbstractCommunicationAgent myagent;
 
-    public PingBehaviour(final ExploreCoopAgent2 myagent, List<String> agentNames) {
+    public PingBehaviour(final AbstractCommunicationAgent myagent, List<String> agentNames) {
         super(myagent);
         this.agentNames = agentNames;
         this.myagent = myagent;

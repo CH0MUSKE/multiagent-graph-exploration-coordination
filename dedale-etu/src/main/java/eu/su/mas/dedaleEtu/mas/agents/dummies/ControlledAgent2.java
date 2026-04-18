@@ -11,16 +11,16 @@ import eu.su.mas.dedaleEtu.mas.behaviours.ListenerBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 
-public class ControlledAgent2 extends AbstractDedaleAgent implements ICommunicationAgent{
-
-
-
+public class ControlledAgent2 extends AbstractCommunicationAgent{
+    
     private static final long serialVersionUID = 728177281660199801L;
     private HashMap<String, Long> sentMapsRegistry = new HashMap<>();
     private HashMap<String, Long> lastConvRegistry = new HashMap<>();
     private HashMap<String, Long> activeConversations = new HashMap<>();
     private static final long CONV_TIMEOUT = 5000;
     private MapRepresentation myMap;
+    private HashMap<String, String> coalition;
+    private String coalitionId;
 
 
     protected void setup(){
@@ -75,70 +75,5 @@ public class ControlledAgent2 extends AbstractDedaleAgent implements ICommunicat
         }
         super.afterMove();
     }
-
-    public void markMapAsSent(String user_id, Long currTime) {
-        this.sentMapsRegistry.put(user_id, currTime);
-    }
-
-    public boolean hasAlreadySentMap(String agentId) {
-        if (!this.sentMapsRegistry.containsKey(agentId)) {
-            return false;
-        }
-        long lastSentTime = this.sentMapsRegistry.get(agentId);
-        long currentTime = System.currentTimeMillis();
-
-        if ((currentTime - lastSentTime) > CONV_TIMEOUT) {
-            this.sentMapsRegistry.remove(agentId);
-            return false;
-        }
-        return true;
-    }
-    public Long getSentMapDate(String sender_id){
-        return this.sentMapsRegistry.get(sender_id);
-    }
-
-    public void deleteEntrySentMapRegistry(String sender_id){
-        this.sentMapsRegistry.remove(sender_id);
-    }
-
-    public void clearMapRegistry(){
-        this.sentMapsRegistry.clear();
-    }
-    public void addConvId(String id){
-        activeConversations.put(id,System.currentTimeMillis());
-    }
-
-    public boolean checkValidId(String id){
-        if (id == null || !activeConversations.containsKey(id)) {
-            return false;
-        }
-
-        long startTime = activeConversations.get(id);
-        if ((System.currentTimeMillis() - startTime) > CONV_TIMEOUT) {
-            activeConversations.remove(id);
-            return false;
-        }
-        return true;
-    }
-
-    public MapRepresentation getMyMap(){
-        return myMap;
-    }
-
-
-    public Long getLastConvRegistry(String id) {
-        return lastConvRegistry.get(id);
-    }
-
-    public void setLastConvRegistry(String id, Long last_update) {
-        this.lastConvRegistry.put(id, last_update);
-    }
-
-    public void setMap(MapRepresentation map){
-        this.myMap = map;
-    }
-
-
-
-
+    
 }

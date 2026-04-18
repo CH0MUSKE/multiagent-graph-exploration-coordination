@@ -1,13 +1,9 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import org.graphstream.algorithm.Dijkstra;
@@ -442,7 +438,75 @@ public class MapRepresentation implements Serializable {
 
 		return subGraph;
 	}
+	
 
+	private List<String> getNodesWithAtMostNbNeighbours(int nbNeighbours){
+		List<String> neighbours = new ArrayList<>();
+		this.g.nodes().forEach(n ->{
+			if(n.getDegree() <= nbNeighbours){
+				neighbours.add(n.getId());
+			}
+		});
+		return neighbours;
+	}
+	public String selectBestChokePoint(String golemPos, int nbAgents) {
+		List<String> candidates = getNodesWithAtMostNbNeighbours(nbAgents);
+		String bestNode = null;
+		double maxScore = -1.0;
+
+		for (String nodeId : candidates) {
+			List<String> path = getShortestPath(golemPos, nodeId);
+			double dist = (path != null) ? path.size() : 999; // Si inaccessible, on met une distance infinie
+			double proximityScore = 1.0 / (dist + 1);
+
+			double randFactor = Math.random();
+
+			double finalScore = (proximityScore * 0.7) + (randFactor * 0.3);
+
+			if (finalScore > maxScore) {
+				maxScore = finalScore;
+				bestNode = nodeId;
+			} 
+		}
+		return bestNode;
+	}
+	
+	//Seulement les positions, pas des paths entiers car l'état de la map change constammant donc pas d'intérêt
+	public HashMap<String, String> chokePointAllocation(HashMap<String, String> agentPos, String selectedChokePoint) {
+		Node n = this.g.getNode(selectedChokePoint);
+		List<String> availableSlots = n.neighborNodes().map(Node::getId).collect(Collectors.toList());
+
+		HashMap<String,String> assignments = new HashMap<>();
+
+		for (Map.Entry<String, String> entry : agentPos.entrySet()) {
+			String aagentName = entry.getKey();
+			String currentPos = entry.getValue();
+			String bestSlot = findNearestAvailableSlot(currentPos, availableSlots);
+
+			if (bestSlot != null) {
+				assignments.put(agentName, bestSlot); 
+				availableSlots.remove(bestSlot); 
+			}
+		}
+		return assignments;
+	}
+	
+	private String findNearestAvailableSlot(String curPos, List<String> availableSlots){
+		double nearestDist = -1;
+		String nearestSlot = null;
+		for(String slot: availableSlots){
+			List<String> path = getShortestPath(curPos, slot);
+			double dist = (path != null) ? path.size() : 999; // Si inaccessible, on met une distance infinie
+			if(nearestDist == -1 || dist < nearestDist){
+				nearestDist = dist;
+				nearestSlot = slot;
+			}
+			
+		}
+		return nearestSlot;
+	}
+
+	
 
 
 }

@@ -1,0 +1,89 @@
+package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem.leader;
+
+import dataStructures.serializableGraph.SerializableSimpleGraph;
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Location;
+import eu.su.mas.dedale.env.Observation;
+import eu.su.mas.dedale.env.gs.GsLocation;
+import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.ICommunicationAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
+import eu.su.mas.dedaleEtu.mas.utils.MessageFactory;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
+import jade.tools.gui.ACLPerformativesRenderer;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+public class ReceiveEchoBehaviour extends SimpleBehaviour {
+    String conversation_id;
+    ICommunicationAgent agent;
+    private final long timeout = 2000;
+    private long startTime;
+
+    private boolean finished;
+    public ReceiveEchoBehaviour(AbstractDedaleAgent myagent, String conversation_id){
+        super(myagent);
+        this.agent = (ICommunicationAgent)myagent; 
+        this.conversation_id = conversation_id;
+        this.startTime = System.currentTimeMillis();
+    }
+    
+    @Override
+    public void action(){
+        long elapsed = System.currentTimeMillis() - startTime;
+        if (elapsed >= timeout) {
+            this.finished = true;
+            return;
+        }
+        MessageTemplate template = MessageFactory.buildMultiProtocolTemplate(ACLMessage.INFORM, List.of("ECHO_GOLEM"));
+        ACLMessage msg = this.myAgent.receive(template);
+        while (msg != null) {
+            if (this.agent.checkValidCoalition(msg.getConversationId())) {
+                try {
+                    @SuppressWarnings("unchecked")
+                    HashMap<String, String> branchMembers = (HashMap<String, String>) msg.getContentObject();
+
+                    if (branchMembers != null) {
+                        for (Map.Entry<String, String> entry : branchMembers.entrySet()) {
+                            String name = entry.getKey();
+                            String pos = entry.getValue();
+                            this.agent.addAgentToCoalition(name, pos);
+                        }
+                    }
+                } catch (UnreadableException e) {
+                    System.err.println("Erreur de désérialisation : " + e.getMessage());
+                }
+                this.agent.getChildren().add(msg.getSender().getLocalName());
+                msg = this.myAgent.receive(template);
+            }
+        }
+        long remaining = timeout - (System.currentTimeMillis() - startTime);
+        if (remaining > 0) {
+            block(remaining);
+        } else {
+            this.finished = true;
+        }
+    }
+
+    @Override
+    public boolean done() {
+        return finished;
+    }
+
+    @Override
+    public int onEnd() {
+        if (this.agent.getCoalitionSize() > 0) {
+            System.out.println("Succès ! Coalition formée avec " + this.agent.getCoalitionSize() + " membres.");
+            return 1; 
+        } else {
+            System.out.println("Échec... personne n'a répondu. Tentative de re-ping.");
+            return 0; 
+        }
+    }
+}

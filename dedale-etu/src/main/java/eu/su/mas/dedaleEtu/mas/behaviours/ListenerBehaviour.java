@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.ICommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
@@ -19,9 +20,9 @@ import java.util.List;
 public class ListenerBehaviour extends CyclicBehaviour {
     private final List<String> protocols = List.of("PING", "PONG", "ACK", "SHARE-MAP");
     MessageTemplate template;
-    ICommunicationAgent myagent;
-    public ListenerBehaviour(ICommunicationAgent myagent) {
-        super((AbstractDedaleAgent)myagent);
+    AbstractCommunicationAgent myagent;
+    public ListenerBehaviour(AbstractCommunicationAgent myagent) {
+        super(myagent);
         this.myagent = myagent;
         this.template = MessageFactory.buildMultiProtocolTemplate(ACLMessage.INFORM,protocols);
 

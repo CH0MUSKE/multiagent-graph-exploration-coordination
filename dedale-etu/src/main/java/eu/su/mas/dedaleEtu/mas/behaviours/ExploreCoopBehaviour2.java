@@ -6,6 +6,7 @@
     import eu.su.mas.dedale.env.Observation;
     import eu.su.mas.dedale.env.gs.GsLocation;
     import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+    import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
     import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
     import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
     import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
@@ -25,13 +26,13 @@
     
         private List<String> list_agentNames;
         private MapRepresentation myMap;
-        private ExploreCoopAgent2 myagent;
+        private AbstractCommunicationAgent myagent;
         private int cpt;
         
-        public ExploreCoopBehaviour2(final AbstractDedaleAgent myagent, List<String> agentNames){
+        public ExploreCoopBehaviour2(final AbstractCommunicationAgent myagent, List<String> agentNames){
             super(myagent);
             this.list_agentNames = agentNames;
-            this.myagent = (ExploreCoopAgent2) myagent;
+            this.myagent = myagent;
             this.myMap = this.myagent.getMyMap();
             this.cpt = 0;
         }
@@ -101,8 +102,11 @@
                 }
     
                boolean hasMoved = ((AbstractDedaleAgent)this.myAgent).moveTo(new GsLocation(nextNodeId));
+                System.out.println(nextNodeId);
+
                 if(hasMoved && cpt % 3 == 0){
                     this.myagent.addBehaviour(new PingBehaviour(this.myagent,list_agentNames));
+
                 }
                 if(!nearbyAgents.isEmpty()){
                     this.myagent.addBehaviour(new PingBehaviour(this.myagent,nearbyAgents));
