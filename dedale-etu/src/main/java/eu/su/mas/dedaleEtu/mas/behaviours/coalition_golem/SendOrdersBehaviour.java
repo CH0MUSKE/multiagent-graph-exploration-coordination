@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem.leader;
+package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
@@ -10,6 +10,7 @@ import org.apache.commons.math3.analysis.function.Abs;
 import weka.knowledgeflow.Data;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.List;
 
 public class SendOrdersBehaviour extends OneShotBehaviour {
@@ -23,7 +24,11 @@ public class SendOrdersBehaviour extends OneShotBehaviour {
 
     @Override
     public void action(){
-        Serializable plan = (Serializable) this.getDataStore().get("PLAN_GOLEM");
+        HashMap<String,String> plan = (HashMap<String, String>) this.getDataStore().get("PLAN_GOLEM");
+        String curPos = this.agent.getCurrentPosition().getLocationId();
+        Serializable[] content = new Serializable[2];
+        content[0] = plan;
+        content[1] = curPos;
 
         if (plan == null) {
             System.err.println(this.myAgent.getLocalName() + " - Erreur : Aucun plan trouvé dans le DataStore !");
@@ -39,8 +44,8 @@ public class SendOrdersBehaviour extends OneShotBehaviour {
         ACLMessage msg = MessageFactory.buildMsg(
                 this.agent.getAID(),
                 recipients,
-                "GOLEM_ORDER",
-                plan,
+                "ORDER_GOLEM",
+                content,
                 convId
         );
 

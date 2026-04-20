@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem.leader;
+package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem;
 
 import dataStructures.serializableGraph.SerializableSimpleGraph;
 import dataStructures.tuple.Couple;
@@ -6,7 +6,7 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.ICommunicationAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
 import eu.su.mas.dedaleEtu.mas.utils.MessageFactory;
 import jade.core.behaviours.OneShotBehaviour;
@@ -22,16 +22,17 @@ import java.util.Map;
 
 public class ReceiveEchoBehaviour extends SimpleBehaviour {
     String conversation_id;
-    ICommunicationAgent agent;
-    private final long timeout = 2000;
-    private long startTime;
+    AbstractCommunicationAgent agent;
+    private final long timeout;
+    private final long startTime;
 
     private boolean finished;
-    public ReceiveEchoBehaviour(AbstractDedaleAgent myagent, String conversation_id){
+    public ReceiveEchoBehaviour(AbstractCommunicationAgent myagent, String conversation_id, long timeout){
         super(myagent);
-        this.agent = (ICommunicationAgent)myagent; 
+        this.agent = myagent; 
         this.conversation_id = conversation_id;
         this.startTime = System.currentTimeMillis();
+        this.timeout = timeout;
     }
     
     @Override
@@ -79,7 +80,7 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
     @Override
     public int onEnd() {
         if (this.agent.getCoalitionSize() > 0) {
-            System.out.println("Succès ! Coalition formée avec " + this.agent.getCoalitionSize() + " membres.");
+            System.out.println("Succès ! (Sous) coalition formée avec " + this.agent.getCoalitionSize() + " membres.");
             return 1; 
         } else {
             System.out.println("Échec... personne n'a répondu. Tentative de re-ping.");

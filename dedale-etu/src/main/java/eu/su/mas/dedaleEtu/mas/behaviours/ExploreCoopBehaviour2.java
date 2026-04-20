@@ -28,6 +28,7 @@
         private MapRepresentation myMap;
         private AbstractCommunicationAgent myagent;
         private int cpt;
+        private Location prevLocation;
         
         public ExploreCoopBehaviour2(final AbstractCommunicationAgent myagent, List<String> agentNames){
             super(myagent);
@@ -56,32 +57,56 @@
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            this.myMap.addNode(myPosition.getLocationId(), MapRepresentation.MapAttribute.closed);
+            this.myMap.addNode(myPosition.getLocationId(), MapRepresentation.MapAttribute.closed, NodeInfo.Entity.AGENT, this.myagent.getAID().getLocalName(), 0);
             
             String nextNodeId=null;
             List<String> nearbyAgents = new ArrayList<>();
             for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
-                Location accessibleNode = obs.getLeft();
-                String nodeId = accessibleNode.getLocationId();
+                Location nodeLocation = obs.getLeft();
+                String nodeId = nodeLocation.getLocationId();
                 List<Couple<Observation, String>> nodeObservations = obs.getRight();
 
-                // 1. TOPOLOGIE : On ajoute le nœud et l'arête
-                boolean isNewNode = this.myMap.addNewNode(nodeId);
-                if (!myPosition.getLocationId().equals(nodeId)) {
-                    this.myMap.addEdge(myPosition.getLocationId(), nodeId);
-                    // Si on voit un nouveau nœud et qu'on n'a pas encore de destination, on le prend
-                    if (nextNodeId == null && isNewNode) nextNodeId = nodeId;
+                NodeInfo.Entity type = NodeInfo.Entity.EMPTY;
+                String entityName = null;
+                int smellValue = 0;
 
-                }
-                // 2. SOCIAL : On cherche les agents sur ce nœud
+                // A. Extraction de l'odeur et des Entités
                 for (Couple<Observation, String> o : nodeObservations) {
-                    if (o.getLeft() == Observation.AGENTNAME) {
-                        String entityName = o.getRight();
-                        
-                        if (list_agentNames.contains(entityName) && !this.myagent.hasAlreadySentMap(entityName)) {
-                            nearbyAgents.add(entityName);
-                        }
+                    switch (o.getLeft()) {
+                        case STENCH:
+                            String val = o.getRight();
+                            smellValue = (val == null || val.isEmpty()) ? 1 : Integer.parseInt(val);
+                            break;
+                        case AGENTNAME:
+                            entityName = o.getRight();
+                            // On identifie si c'est le Golem ou un Agent
+                            if (entityName.toLowerCase().contains("golem")) {
+                                type = NodeInfo.Entity.GOLEM;
+                            } else {
+                                type = NodeInfo.Entity.AGENT;
+                                // Si c'est un allié, on l'ajoute pour le Ping
+                                if (list_agentNames.contains(entityName) && !this.myagent.hasAlreadySentMap(entityName)) {
+                                    nearbyAgents.add(entityName);
+                                }
+                            }
+                            break;
                     }
+                }
+
+                // B. Cas particulier : Ma propre case
+                if (nodeId.equals(myPosition.getLocationId())) {
+                    type = NodeInfo.Entity.AGENT;
+                    entityName = this.myagent.getLocalName();
+                    this.myMap.addNode(nodeId, MapRepresentation.MapAttribute.closed, type, entityName, smellValue);
+                } else {
+                    // C. Topologie pour les voisins
+                    boolean isNew = this.myMap.addNewNode(nodeId);
+                    this.myMap.addEdge(myPosition.getLocationId(), nodeId);
+
+                    // On met à jour les infos du voisin (Golem ou Vide)
+                    this.myMap.addNode(nodeId, MapRepresentation.MapAttribute.open, type, entityName, smellValue);
+
+                    if (nextNodeId == null && isNew) nextNodeId = nodeId;
                 }
             }
             if (!this.myMap.hasOpenNode()){

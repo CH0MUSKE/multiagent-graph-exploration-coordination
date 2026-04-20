@@ -2,13 +2,17 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import jade.core.behaviours.Behaviour;
 import net.sourceforge.plantuml.salt.element.ListWidth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent implements ICommunicationAgent {
+public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
+    public enum Status{
+        HUNTING, EXPLORING, SMELLING
+    }
     protected HashMap<String, Long> sentMapsRegistry = new HashMap<>();
     //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected HashMap<String, Long> lastConvRegistry = new HashMap<>();
@@ -21,13 +25,19 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent imp
     protected MapRepresentation myMap;
     protected String golemPos;
     protected List<String> children = new ArrayList<>();
+    protected String leaderId;
+    protected String orderTarget;
+    protected Status status;
+    public List<String> agentList = new ArrayList<>();
+    private Behaviour currentCoalitionBehaviour = null;
+    
 
-    @Override
+    
     public void markMapAsSent(String user_id, Long currTime) {
         this.sentMapsRegistry.put(user_id, currTime);
     }
 
-    @Override
+    
     public boolean hasAlreadySentMap(String agentId) {
         if (!this.sentMapsRegistry.containsKey(agentId)) {
             return false;
@@ -43,24 +53,24 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent imp
 
         return true;
     }
-    @Override
+    
     public Long getSentMapDate(String sender_id){
         return this.sentMapsRegistry.get(sender_id);
     }
-    @Override
+    
     public void deleteEntrySentMapRegistry(String sender_id){
         this.sentMapsRegistry.remove(sender_id);
     }
 
-    @Override
+    
     public void clearMapRegistry(){
         this.sentMapsRegistry.clear();
     }
-    @Override
+    
     public void addConvId(String id){
         activeConversations.put(id,System.currentTimeMillis());
     }
-    @Override
+    
     public boolean checkValidId(String id){
         if (id == null || !activeConversations.containsKey(id)) {
             return false;
@@ -73,68 +83,124 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent imp
         }
         return true;
     }
-    @Override
+    
     public boolean checkValidCoalition(String coalitionId){
         return this.coalitionId.equals(coalitionId);
     }
 
-    @Override
+    
     public MapRepresentation getMyMap(){
         return myMap;
     }
 
-    @Override
+    
     public Long getLastConvRegistry(String id) {
         return lastConvRegistry.get(id);
     }
-    @Override
+    
     public void setLastConvRegistry(String id, Long last_update) {
         this.lastConvRegistry.put(id, last_update);
     }
 
-    @Override
+    
     public void setMap(MapRepresentation map){
         this.myMap = map;
     }
 
-    @Override
+    
     public String getCoalitionPos(String id) {
         return this.coalition.get(id);
     }
     
-    @Override
+    
     public void addAgentToCoalition(String id, String pos) {
         this.coalition.put(id, pos);
     }
-    @Override
+    
     public String getCoalitionId() {
         return coalitionId;
     }
-    @Override
+    
     public void setCoalitionId(String coalitionId) {
         this.coalitionId = coalitionId;
     }
     
-    @Override
+    
     public int getCoalitionSize(){
         return coalition.size();
     }
     
-    @Override
+    
     public String getGolemPos(){
         return this.golemPos;
     }
-    @Override
+    
     public void setGolemPos(String golemPos){
         this.golemPos = golemPos;
     }
-    @Override
+    
     public HashMap<String,String> getCoalition(){
         return this.coalition;
     }
 
-    @Override
+    
     public List<String> getChildren() {
         return this.children;
+    }
+    
+    
+    public void setLeaderId(String leaderId){
+        this.leaderId = leaderId;
+    }
+    
+    
+    public String getLeaderId(){
+        return this.leaderId;
+    }
+    
+    public void setOrderTarget(String target){
+        this.orderTarget = target;
+    }
+    
+    public String getOrderTarget(){
+        return orderTarget;
+    }
+    
+    public void setStatus(Status status){
+        this.status = status;
+    }
+    
+    public Status getStatus(){
+        return this.status;
+    }
+    public void setCurrentCoalitionBehaviour(Behaviour b) {
+        this.currentCoalitionBehaviour = b;
+    }
+
+    public Behaviour getCurrentCoalitionBehaviour() {
+        return this.currentCoalitionBehaviour;
+    }
+    
+    public void startCoalition(Behaviour coalition, Status status, String leaderId, String golemPos, String coalitionId){
+        this.setStatus(status);
+        this.setLeaderId(leaderId);
+        this.setGolemPos(golemPos);
+        this.setCoalitionId(coalitionId);
+        this.setCurrentCoalitionBehaviour(coalition);
+        this.addBehaviour(coalition);
+    }
+
+    public void stopCurrentCoalition() {
+        if (this.currentCoalitionBehaviour != null) {
+            this.removeBehaviour(this.currentCoalitionBehaviour);
+            this.currentCoalitionBehaviour = null;
+            this.status = Status.EXPLORING;
+            this.getChildren().clear();
+            this.setOrderTarget("");
+            this.setLeaderId("");
+            this.setGolemPos("");
+            this.setCoalitionId("");
+            this.coalition.clear();
+        }
     }
 }

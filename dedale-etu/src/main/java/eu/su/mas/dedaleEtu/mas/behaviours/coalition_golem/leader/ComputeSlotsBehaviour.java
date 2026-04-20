@@ -22,7 +22,6 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
         HashMap<String,String> coalition = this.myagent.getCoalition();
         String bestChokePoint = map.selectBestChokePoint(golemPos, coalitionSize);
         HashMap<String,String> plan = map.chokePointAllocation(coalition,bestChokePoint);
-        this.getDataStore().put("PLAN_GOLEM", plan);
-        
+        this.getDataStore().put("ORDER_GOLEM", plan);
     }
 }

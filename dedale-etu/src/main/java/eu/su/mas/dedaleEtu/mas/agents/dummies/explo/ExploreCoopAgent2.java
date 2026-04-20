@@ -4,7 +4,6 @@ import eu.su.mas.dedale.env.EntityCharacteristics;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.StartMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.ICommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploreCoopBehaviour2;
 import eu.su.mas.dedaleEtu.mas.behaviours.ListenerBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
@@ -14,7 +13,6 @@ import java.util.*;
 
 public class ExploreCoopAgent2 extends AbstractCommunicationAgent {
     private static final long serialVersionUID = -7969469610241668130L;
-    // Dans MyAgent.java
 
     
     protected void setup(){
@@ -34,6 +32,7 @@ public class ExploreCoopAgent2 extends AbstractCommunicationAgent {
                 System.out.println(this.getLocalName() + " contactera : " + list_agentNames);
             }
         }
+        this.agentList = list_agentNames;
 
 
         List<Behaviour> lb=new ArrayList<Behaviour>();

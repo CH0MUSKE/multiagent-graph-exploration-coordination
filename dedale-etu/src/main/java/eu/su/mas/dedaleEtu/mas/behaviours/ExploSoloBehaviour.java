@@ -13,6 +13,7 @@ import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
 import jade.core.behaviours.SimpleBehaviour;
 
 
@@ -69,7 +70,7 @@ public class ExploSoloBehaviour extends SimpleBehaviour {
 			}
 
 			//1) remove the current node from openlist and add it to closedNodes.
-			this.myMap.addNode(myPosition.getLocationId(),MapAttribute.closed);
+			this.myMap.addNode(myPosition.getLocationId(),MapAttribute.closed, NodeInfo.Entity.EMPTY,"",0);
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNodeId=null;

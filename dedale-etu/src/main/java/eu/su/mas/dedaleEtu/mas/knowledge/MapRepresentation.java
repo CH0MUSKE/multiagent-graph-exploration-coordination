@@ -45,8 +45,7 @@ public class MapRepresentation implements Serializable {
 	 */
 
 	public enum MapAttribute {	
-		agent,open,closed;
-
+		agent,open,closed, blocked;
 	}
 
 	private static final long serialVersionUID = -1333959882640838272L;
@@ -111,7 +110,7 @@ public class MapRepresentation implements Serializable {
 	 * @param id unique identifier of the node
 	 * @param mapAttribute attribute to process
 	 */
-	public synchronized void addNode(String id,MapAttribute mapAttribute){
+	public synchronized void addNode(String id, MapAttribute mapAttribute, NodeInfo.Entity entityType, String entityId, int smell){
 		Node n;
 		if (this.g.getNode(id)==null){
 			n=this.g.addNode(id);
@@ -123,23 +122,25 @@ public class MapRepresentation implements Serializable {
 		n.setAttribute("ui.class", mapAttribute.toString());
 		n.setAttribute("ui.label",id);
 		n.setAttribute("lastUpdate", now);
-		
+		n.setAttribute("entityType", entityType.toString());
+		n.setAttribute("entityId", entityId);
+		n.setAttribute("smell",smell);
 	}
 
 	/**
 	 * Add a node to the graph. Do nothing if the node already exists.
-	 * If new, it is labeled as open (non-visited)
+	 * If new, it is labeled as open (non-visited), entity = EMPTY, id = "" and smell = 0
 	 * @param id id of the node
 	 * @return true if added
 	 */
 	public synchronized boolean addNewNode(String id) {
 		if (this.g.getNode(id)==null){
-			addNode(id,MapAttribute.open);
+			addNode(id,MapAttribute.open, NodeInfo.Entity.EMPTY, "",0);
 			return true;
 		}
 		return false;
 	}
-
+	
 	/**
 	 * Add an undirect edge if not already existing.
 	 * @param idNode1 unique identifier of node1
@@ -235,7 +236,10 @@ public class MapRepresentation implements Serializable {
 			Node n=iter.next();
 			MapAttribute attr = MapAttribute.valueOf((String) n.getAttribute("ui.class"));
 			long ts = (long) n.getAttribute("lastUpdate");
-			sg.addNode(n.getId(), new NodeInfo(attr, ts));
+			NodeInfo.Entity entity = (NodeInfo.Entity) n.getAttribute("entity");
+			String entityId = (String)n.getAttribute("entityId");
+			int smell = (int)n.getAttribute("smell");
+			sg.addNode(n.getId(), new NodeInfo(attr, ts, entity, entityId, smell));
 		}
 		Iterator<Edge> iterE=this.g.edges().iterator();
 		while (iterE.hasNext()){
@@ -266,7 +270,11 @@ public class MapRepresentation implements Serializable {
 		for (SerializableNode<String, NodeInfo> n: this.sg.getAllNodes()){
 			this.g.addNode(n.getNodeId()).setAttribute("ui.class", n.getNodeContent().statut.toString());
 			this.g.addNode(n.getNodeId()).setAttribute("lastUpdate", n.getNodeContent().lastUpdate);
-			
+			this.g.addNode(n.getNodeId()).setAttribute("entityType", n.getNodeContent().entityType);
+			this.g.addNode(n.getNodeId()).setAttribute("entityId", n.getNodeContent().entityId);
+			this.g.addNode(n.getNodeId()).setAttribute("smell", n.getNodeContent().smell);
+
+
 			for(String s:this.sg.getEdges(n.getNodeId())){
 				this.g.addEdge(nbEd.toString(),n.getNodeId(),s);
 				nbEd++;
@@ -353,7 +361,11 @@ public class MapRepresentation implements Serializable {
 			if (!alreadyIn) {
 				newnode.setAttribute("ui.label", newnode.getId());
 				newnode.setAttribute("ui.class", n.getNodeContent().statut.toString());
-				newnode.setAttribute("lastUpdate", n.getNodeContent().lastUpdate); 
+				newnode.setAttribute("lastUpdate", n.getNodeContent().lastUpdate);
+				newnode.setAttribute("entityType", n.getNodeContent().entityType.toString());
+				newnode.setAttribute("entityId", n.getNodeContent().entityId);
+				newnode.setAttribute("smell", n.getNodeContent().smell);
+
 			}else{
 				newnode=this.g.getNode(n.getNodeId());
 				//3 check its attribute. If it is below the one received, update it.
@@ -368,6 +380,9 @@ public class MapRepresentation implements Serializable {
 				if (new_time > curr_time && !tryingToReopen){
 					newnode.setAttribute("ui.class", infoRecue.statut.toString());
 					newnode.setAttribute("lastUpdate", new_time);
+					newnode.setAttribute("entityType", infoRecue.entityType.toString());
+					newnode.setAttribute("entityId", infoRecue.entityId);
+					newnode.setAttribute("smell", infoRecue.smell);
 				}
 				
 			}
@@ -405,10 +420,13 @@ public class MapRepresentation implements Serializable {
 		// 2. Premier passage : On ajoute tous les nœuds mis à jour
 		this.g.nodes().forEach(n -> {
 			long nodeTs = (long) n.getAttribute("lastUpdate");
+			NodeInfo.Entity entityType = (NodeInfo.Entity) n.getAttribute("entityType");
+			String entityId = (String)n.getAttribute("entityId");
+			int smell = (int)n.getAttribute("smell");
 
 			if (nodeTs >= threshold) {
 				MapAttribute attr = MapAttribute.valueOf((String) n.getAttribute("ui.class"));
-				subGraph.addNode(n.getId(), new NodeInfo(attr, nodeTs));
+				subGraph.addNode(n.getId(), new NodeInfo(attr, nodeTs, entityType, entityId, smell));
 				addedNodes.add(n.getId());
 			}
 		});
@@ -425,11 +443,11 @@ public class MapRepresentation implements Serializable {
 				// (sinon le SerializableSimpleGraph risque de râler)
 				if (subGraph.getNode(idSrc) == null) {
 					Node n = e.getSourceNode();
-					subGraph.addNode(idSrc, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate")));
+					subGraph.addNode(idSrc, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),(NodeInfo.Entity)n.getAttribute("entityType"),(String)n.getAttribute("entityId"), (int)n.getAttribute("smell") ));
 				}
 				if (subGraph.getNode(idDst) == null) {
 					Node n = e.getTargetNode();
-					subGraph.addNode(idDst, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate")));
+					subGraph.addNode(idDst, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),(NodeInfo.Entity)n.getAttribute("entityId"), (String)n.getAttribute("entityId"), (int)n.getAttribute("smell") ));
 				}
 
 				subGraph.addEdge(e.getId(), idSrc, idDst);
@@ -449,6 +467,7 @@ public class MapRepresentation implements Serializable {
 		});
 		return neighbours;
 	}
+	// getShortestPath sur énormément de noeuds, à voir si faut changer
 	public String selectBestChokePoint(String golemPos, int nbAgents) {
 		List<String> candidates = getNodesWithAtMostNbNeighbours(nbAgents);
 		String bestNode = null;
@@ -471,42 +490,46 @@ public class MapRepresentation implements Serializable {
 		return bestNode;
 	}
 	
-	//Seulement les positions, pas des paths entiers car l'état de la map change constammant donc pas d'intérêt
+	// Extremement lourd en calcul, trouver autre chose si c'est trop lent
 	public HashMap<String, String> chokePointAllocation(HashMap<String, String> agentPos, String selectedChokePoint) {
 		Node n = this.g.getNode(selectedChokePoint);
 		List<String> availableSlots = n.neighborNodes().map(Node::getId).collect(Collectors.toList());
 
-		HashMap<String,String> assignments = new HashMap<>();
+		List<AssignmentCandidate> candidates = new ArrayList<>();
 
-		for (Map.Entry<String, String> entry : agentPos.entrySet()) {
-			String aagentName = entry.getKey();
-			String currentPos = entry.getValue();
-			String bestSlot = findNearestAvailableSlot(currentPos, availableSlots);
+		for (String agentName : agentPos.keySet()) {
+			String curPos = agentPos.get(agentName);
+			for (String slot : availableSlots) {
+				List<String> path = getShortestPath(curPos, slot);
+				int dist = (path != null) ? path.size() : 999;
+				candidates.add(new AssignmentCandidate(agentName, slot, dist));
+			}
+		}
 
-			if (bestSlot != null) {
-				assignments.put(agentName, bestSlot); 
-				availableSlots.remove(bestSlot); 
+		Collections.sort(candidates, Comparator.comparingInt(c -> c.distance));
+
+		HashMap<String, String> assignments = new HashMap<>();
+		Set<String> assignedAgents = new HashSet<>();
+		Set<String> occupiedSlots = new HashSet<>();
+
+		for (AssignmentCandidate c : candidates) {
+			if (!assignedAgents.contains(c.agentName) && !occupiedSlots.contains(c.slotId)) {
+				assignments.put(c.agentName, c.slotId);
+				assignedAgents.add(c.agentName);
+				occupiedSlots.add(c.slotId);
 			}
 		}
 		return assignments;
 	}
-	
-	private String findNearestAvailableSlot(String curPos, List<String> availableSlots){
-		double nearestDist = -1;
-		String nearestSlot = null;
-		for(String slot: availableSlots){
-			List<String> path = getShortestPath(curPos, slot);
-			double dist = (path != null) ? path.size() : 999; // Si inaccessible, on met une distance infinie
-			if(nearestDist == -1 || dist < nearestDist){
-				nearestDist = dist;
-				nearestSlot = slot;
-			}
-			
+
+	private static class AssignmentCandidate {
+		String agentName;
+		String slotId;
+		int distance;
+		AssignmentCandidate(String a, String s, int d) {
+			this.agentName = a; this.slotId = s; this.distance = d;
 		}
-		return nearestSlot;
 	}
-
 	
-
 
 }
