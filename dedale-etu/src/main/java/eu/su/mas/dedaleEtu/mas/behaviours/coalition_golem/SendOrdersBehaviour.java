@@ -16,10 +16,10 @@ import java.util.List;
 public class SendOrdersBehaviour extends OneShotBehaviour {
     AbstractCommunicationAgent agent;
     String convId;
-    public SendOrdersBehaviour(final AbstractCommunicationAgent myagent, String convId){
+    public SendOrdersBehaviour(final AbstractCommunicationAgent myagent){
         super(myagent);
         this.agent = myagent;
-        this.convId = convId;
+        this.convId = this.agent.getCoalitionId();
     }
 
     @Override

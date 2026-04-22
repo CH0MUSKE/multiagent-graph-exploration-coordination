@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 public class ListenerBehaviour extends CyclicBehaviour {
-    private final List<String> protocols = List.of("PING", "PONG", "ACK", "SHARE-MAP", "FLOOD_GOLEM");
+    private final List<String> protocols = List.of("PING", "PONG", "ACK", "SHARE-MAP", "FLOOD_GOLEM", "SMELL");
     MessageTemplate template;
     AbstractCommunicationAgent myagent;
     public ListenerBehaviour(AbstractCommunicationAgent myagent) {
@@ -40,6 +40,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
                 case "ACK" -> ackHandler(msgReceived);
                 case "SHARE-MAP" -> shareMapHandler(msgReceived);
                 case "FLOOD_GOLEM" -> floodHandler(msgReceived);
+                case "SMELL" -> smellHandler(msgReceived);
             }
         }
         else{
@@ -145,18 +146,21 @@ public class ListenerBehaviour extends CyclicBehaviour {
         String golem_pos = content[1];
         long timeout = Long.parseLong(content[2]);
         int depth = Integer.parseInt(content[3]);
+        String senderId = msg.getSender().getLocalName();
 
         boolean transitionAuthorized = false;
 
         switch (this.myagent.getStatus()) {
             case HUNTING -> {
-                if (shouldDelegate(leader_id)) {
+                if (shouldDelegate(leader_id) && !this.myagent.getCoalitionId().equals(conversation_id)) {
                     transitionAuthorized = true;
                 }
             }
             // Si on explore ou qu'on sent le golem, on accepte d'entrer en coalition
             default -> transitionAuthorized = true;
         }
+        System.out.println("Je suis: " + this.myagent.getLocalName() + " et mon leader est: " + leader_id);
+
 
         if (transitionAuthorized) {
             // On nettoie TOUJOURS avant de commencer
@@ -164,12 +168,30 @@ public class ListenerBehaviour extends CyclicBehaviour {
 
             // On lance la nouvelle
             this.myagent.startCoalition(
-                    new CoalitionParticipantGolemBehaviour(myagent, timeout, this.myagent.agentList, depth, conversation_id, leader_id),
+                    new CoalitionParticipantGolemBehaviour(myagent, timeout, this.myagent.agentList, depth, leader_id),
                     AbstractCommunicationAgent.Status.HUNTING,
                     leader_id,
                     golem_pos,
-                    conversation_id
+                    conversation_id,
+                    senderId
             );
+
+        }
+    }
+    
+    private void smellHandler(ACLMessage msg){
+        if(this.myagent.getStatus() == AbstractCommunicationAgent.Status.EXPLORING){
+            List<String> smellNodes = null;
+            try{
+                smellNodes = (List<String>)msg.getContentObject();
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+            if(smellNodes != null){
+                this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
+                this.myagent.setOrderTarget(smellNodes.get((int) (Math.random() * smellNodes.size())));
+            }
         }
     }
     

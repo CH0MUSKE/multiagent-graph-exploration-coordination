@@ -11,13 +11,15 @@ import jade.core.behaviours.FSMBehaviour;
 import java.util.List;
 
 public class CoalitionParticipantGolemBehaviour extends FSMBehaviour {
-    public CoalitionParticipantGolemBehaviour(final AbstractCommunicationAgent agent, long timeout, List<String> agentList, int depth, String conversation_id, String leader_id){
+    private final AbstractCommunicationAgent agent;
+    public CoalitionParticipantGolemBehaviour(final AbstractCommunicationAgent agent, long timeout, List<String> agentList, int depth, String leader_id){
         super(agent);
-        registerFirstState(new PropagationBehaviour(agent, depth, agentList, conversation_id,timeout, leader_id),"DIFFUSION");
-        registerState(new ReceiveEchoBehaviour(agent, conversation_id, timeout),"WAITING_ECHO");
+        this.agent = agent;
+        registerFirstState(new PropagationBehaviour(agent, depth, agentList,timeout, leader_id),"DIFFUSION");
+        registerState(new ReceiveEchoBehaviour(agent, timeout),"WAITING_ECHO");
         registerState(new SendEchoBehaviour(agent), "SENDING_ECHO");
         registerState(new WaitingOrderBehaviour(agent), "WAITING_ORDER");
-        registerState(new SendOrdersBehaviour(agent, conversation_id), "SENDING_ORDER_CHILDREN");
+        registerLastState(new SendOrdersBehaviour(agent), "SENDING_ORDER_CHILDREN");
 
         
         registerTransition("DIFFUSION", "WAITING_ECHO",1);
@@ -31,5 +33,11 @@ public class CoalitionParticipantGolemBehaviour extends FSMBehaviour {
 
 
 
+    }
+    
+    @Override
+    public int onEnd(){
+        this.agent.resetCoalitionData();
+        return 0;
     }
 }

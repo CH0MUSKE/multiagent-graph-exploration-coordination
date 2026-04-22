@@ -2,7 +2,6 @@ package eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem.participant;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.ICommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.utils.MessageFactory;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.SimpleBehaviour;

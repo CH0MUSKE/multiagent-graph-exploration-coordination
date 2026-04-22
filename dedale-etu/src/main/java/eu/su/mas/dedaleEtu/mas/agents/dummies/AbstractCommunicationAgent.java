@@ -11,7 +11,7 @@ import java.util.List;
 
 public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
     public enum Status{
-        HUNTING, EXPLORING, SMELLING
+        HUNTING, EXPLORING, SMELLING, BLOCKING
     }
     protected HashMap<String, Long> sentMapsRegistry = new HashMap<>();
     //Pour l'échange de map seulement. TODO: CHANGER LE NOM
@@ -19,17 +19,18 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
     //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected HashMap<String, Long> activeConversations = new HashMap<>();
     protected HashMap<String, String> coalition = new HashMap<>();
-    protected String coalitionId;
+    protected String coalitionId = "";
     //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected static final long CONV_TIMEOUT = 5000;
     protected MapRepresentation myMap;
-    protected String golemPos;
+    protected String golemPos = "";
     protected List<String> children = new ArrayList<>();
-    protected String leaderId;
-    protected String orderTarget;
-    protected Status status;
+    protected String leaderId = "";
+    protected String orderTarget = "";
+    protected Status status = Status.EXPLORING;
     public List<String> agentList = new ArrayList<>();
     private Behaviour currentCoalitionBehaviour = null;
+    private String parent = "";
     
 
     
@@ -181,26 +182,38 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
         return this.currentCoalitionBehaviour;
     }
     
-    public void startCoalition(Behaviour coalition, Status status, String leaderId, String golemPos, String coalitionId){
+    public void startCoalition(Behaviour coalition, Status status, String leaderId, String golemPos, String coalitionId, String parent){
         this.setStatus(status);
         this.setLeaderId(leaderId);
         this.setGolemPos(golemPos);
         this.setCoalitionId(coalitionId);
         this.setCurrentCoalitionBehaviour(coalition);
         this.addBehaviour(coalition);
+        this.setParent(parent);
+    }
+    
+    public void resetCoalitionData() {
+        this.currentCoalitionBehaviour = null;
+        this.status = Status.EXPLORING;
+        this.children.clear();
+        this.coalition.clear();
+        this.setParent("");
     }
 
     public void stopCurrentCoalition() {
         if (this.currentCoalitionBehaviour != null) {
             this.removeBehaviour(this.currentCoalitionBehaviour);
-            this.currentCoalitionBehaviour = null;
-            this.status = Status.EXPLORING;
-            this.getChildren().clear();
-            this.setOrderTarget("");
-            this.setLeaderId("");
-            this.setGolemPos("");
-            this.setCoalitionId("");
-            this.coalition.clear();
         }
+        this.leaderId = "";
+        this.orderTarget = "";
+        resetCoalitionData();
+    }
+    
+    public void setParent(String parent){
+        this.parent = parent;
+    }
+    
+    public String getParent(){
+        return this.parent;
     }
 }

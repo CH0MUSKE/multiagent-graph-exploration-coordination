@@ -27,10 +27,10 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
     private final long startTime;
 
     private boolean finished;
-    public ReceiveEchoBehaviour(AbstractCommunicationAgent myagent, String conversation_id, long timeout){
+    public ReceiveEchoBehaviour(AbstractCommunicationAgent myagent, long timeout){
         super(myagent);
         this.agent = myagent; 
-        this.conversation_id = conversation_id;
+        this.conversation_id = this.agent.getCoalitionId();
         this.startTime = System.currentTimeMillis();
         this.timeout = timeout;
     }
