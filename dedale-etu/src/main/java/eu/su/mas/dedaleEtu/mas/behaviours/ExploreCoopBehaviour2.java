@@ -147,7 +147,7 @@
                     long elaspedTimeSinceCoalition = System.currentTimeMillis() - this.lastCoalitionTimestamp;
                     followGolem = true;
 
-                    if((this.myagent.getLeaderId().isBlank() || this.myagent.getLeaderId().equals(this.myagent.getAID().getLocalName())) && (elaspedTimeSinceCoalition >= 5 || this.myagent.getOrderTarget().isBlank())){
+                    if((this.myagent.getLeaderId().isBlank() || this.myagent.getLeaderId().equals(this.myagent.getAID().getLocalName())) && (elaspedTimeSinceCoalition >= 10000)){
                         // On génère un ID de conversation unique
                         String cid = "Coalition_" + System.currentTimeMillis();
                         // On lance le comportement de Leader

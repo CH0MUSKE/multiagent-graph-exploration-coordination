@@ -11,7 +11,7 @@
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1,
-    "userParameters": ["Explo2", "Explo3"]
+    "userParameters": ["Explo2"]
   },
   {
     "agentType":"agentExplo",
@@ -25,21 +25,7 @@
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1,
-    "userParameters": ["Explo1", "Explo3"]
-  },
-  {
-    "agentType":"agentExplo",
-    "agentName": "Explo3",
-    "agentClass":"dummies.explo.ExploreCoopAgent2",
-    "agentInitialContainer":"container2",
-    "communicationRange": 5,
-    "initialLocation": "free",
-    "backPackCapacityGold": -1,
-    "backPackCapacityDiamond":-1,
-    "detectionRadius": 0,
-    "strengthExpertise": 1,
-    "lockPickingExpertise":1,
-    "userParameters": ["Explo1", "Explo2"]
+    "userParameters": ["Explo1"]
   },
   {
     "agentType":"wumpus",
@@ -55,4 +41,5 @@
     "lockPickingExpertise":1,
     "userParameters": ["paramTest"]
   }
+
 ]

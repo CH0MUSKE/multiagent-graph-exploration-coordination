@@ -40,6 +40,7 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
         long elapsed = System.currentTimeMillis() - startTime;
         if (elapsed >= timeout) {
             this.finished = true;
+            System.out.println("timeout reached");
             return;
         }
         MessageTemplate template = MessageFactory.buildMultiProtocolTemplate(ACLMessage.INFORM, List.of("ECHO_GOLEM"));
