@@ -33,6 +33,7 @@
 		<maven-source.version>3.2.1</maven-source.version>
 		<maven-javadoc.version>3.3.0</maven-javadoc.version>
 		<maven-dependency.version>3.2.0</maven-dependency.version>
+		<exec-maven-plugin.version>3.1.0</exec-maven-plugin.version>
 		<junitJupiter.version>5.10.2</junitJupiter.version>
 		<plantuml.version>1.2023.10</plantuml.version>
 		<javafx.version>21.0.2</javafx.version>
@@ -115,6 +116,12 @@
 			<groupId>org.graphstream</groupId>
 			<artifactId>gs-algo</artifactId>
 			<version>${gs-core.version}</version>
+			<exclusions>
+      	     <exclusion>
+               <groupId>xml-apis</groupId>
+               <artifactId>xml-apis</artifactId>
+             </exclusion>
+            </exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.graphstream</groupId>
@@ -170,12 +177,6 @@
 		    <groupId>com.gitlab.dedale</groupId>
 	    	<artifactId>dedale</artifactId>
 	    	<version>${dedale.version}</version>
-		</dependency>
-
-		<dependency>
-		    <groupId>com.gitlab.deltas</groupId>
-	    	<artifactId>mas</artifactId>
-	    	<version>-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
@@ -254,7 +255,15 @@
 						</execution>
 					</executions>
 				</plugin>
-			</plugins>
+				<plugin>
+    				<groupId>org.codehaus.mojo</groupId>
+   				 	<artifactId>exec-maven-plugin</artifactId>
+   				 	<version>${exec-maven-plugin.version}</version>
+    			 	<configuration>
+    			    	<mainClass>eu.su.mas.dedaleEtu.princ.Principal</mainClass>
+   				 	</configuration>
+				</plugin>
+		</plugins>
 		</pluginManagement>
 	</build>
 
