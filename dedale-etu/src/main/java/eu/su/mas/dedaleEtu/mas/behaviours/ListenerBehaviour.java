@@ -70,6 +70,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
     }
     
     private void pongHandler(ACLMessage msg){
+        System.out.println("PONG RECU ");
         String conv_id = msg.getConversationId();
         String sender_id = msg.getSender().getLocalName();
         Long currtime = System.currentTimeMillis();

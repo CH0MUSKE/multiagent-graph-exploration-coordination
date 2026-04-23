@@ -34,18 +34,10 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
         for (String agentId : coalition.keySet()) {
             String pos = coalition.get(agentId);
             Node agentNode = map.getG().getNode(pos);
-            if (map.getG().getNode(pos) != null) {
+            if (map.getG().getNode(pos) != null && !agentNode.hasEdgeBetween(golemPos)) {
                 validCoalition.put(agentId, pos);
             } else {
                 System.out.println("Avertissement : Agent " + agentId + " ignore car position inconnue (" + pos + ")");
-            }
-            
-            boolean isNeighbor = agentNode.hasEdgeBetween(golemPos);
-
-            if (!isNeighbor) {
-                validCoalition.put(agentId, pos);
-            } else {
-                System.out.println(myagent.getLocalName() + " - Agent " + agentId + " exclu du plan car déjà au contact du Golem.");
             }
         }
         
@@ -54,10 +46,16 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
         int validSize = validCoalition.size();
         HashMap<String,String> plan = new HashMap<>();
         if (validSize > 0) {
+            System.out.println("Calcul du plan en cours...");
             String bestChokePoint = map.selectBestChokePoint(golemPos, validSize);
             if (bestChokePoint != null) {
                 this.myagent.setOrderTarget(bestChokePoint);
+                System.out.println("Début de l'allocation");
                 plan = map.chokePointAllocation(validCoalition, bestChokePoint, this.myagent.getCurrentPosition().getLocationId());
+                System.out.println("Allocation terminée");
+            }
+            else{
+                System.out.println("Aucun plan trouvé");
             }
         }
         else{

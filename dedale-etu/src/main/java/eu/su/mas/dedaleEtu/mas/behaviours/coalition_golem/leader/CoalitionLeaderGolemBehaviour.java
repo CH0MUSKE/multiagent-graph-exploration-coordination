@@ -13,9 +13,9 @@ import java.util.List;
 public class CoalitionLeaderGolemBehaviour extends FSMBehaviour {
     final long timeout = 5000;
     final int depth = 3;
-    private AbstractCommunicationAgent agent;
+    private final AbstractCommunicationAgent agent;
 
-    public CoalitionLeaderGolemBehaviour(AbstractCommunicationAgent myagent, List<String> agentList) {
+    public CoalitionLeaderGolemBehaviour(final AbstractCommunicationAgent myagent, List<String> agentList) {
         super(myagent);
         this.agent = myagent;
         registerFirstState(new PropagationBehaviour(myagent, depth+1, agentList, timeout, myagent.getAID().getLocalName()),"DIFFUSION");

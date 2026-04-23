@@ -30,13 +30,13 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
     public ReceiveEchoBehaviour(AbstractCommunicationAgent myagent, long timeout){
         super(myagent);
         this.agent = myagent; 
-        this.conversation_id = this.agent.getCoalitionId();
         this.startTime = System.currentTimeMillis();
         this.timeout = timeout;
     }
     
     @Override
     public void action(){
+        this.conversation_id = this.agent.getCoalitionId();
         long elapsed = System.currentTimeMillis() - startTime;
         if (elapsed >= timeout) {
             this.finished = true;
@@ -62,8 +62,8 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
                     System.err.println("Erreur de désérialisation : " + e.getMessage());
                 }
                 this.agent.getChildren().add(msg.getSender().getLocalName());
-                msg = this.myAgent.receive(template);
             }
+            msg = this.myAgent.receive(template);
         }
         long remaining = timeout - (System.currentTimeMillis() - startTime);
         if (remaining > 0) {

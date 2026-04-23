@@ -188,8 +188,8 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
         this.setGolemPos(golemPos);
         this.setCoalitionId(coalitionId);
         this.setCurrentCoalitionBehaviour(coalition);
-        this.addBehaviour(coalition);
         this.setParent(parent);
+        this.addBehaviour(coalition);
     }
     
     public void resetCoalitionData() {

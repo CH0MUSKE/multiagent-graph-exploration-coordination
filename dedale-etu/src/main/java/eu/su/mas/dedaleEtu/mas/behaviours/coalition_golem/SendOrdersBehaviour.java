@@ -24,7 +24,7 @@ public class SendOrdersBehaviour extends OneShotBehaviour {
 
     @Override
     public void action(){
-        HashMap<String,String> plan = (HashMap<String, String>) this.getDataStore().get("PLAN_GOLEM");
+        HashMap<String,String> plan = (HashMap<String, String>) this.getDataStore().get("ORDER_GOLEM");
         String curPos = this.agent.getCurrentPosition().getLocationId();
         Serializable[] content = new Serializable[2];
         content[0] = plan;

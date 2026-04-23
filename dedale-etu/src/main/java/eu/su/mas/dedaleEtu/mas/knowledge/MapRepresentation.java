@@ -660,6 +660,8 @@ public class MapRepresentation implements Serializable {
 				bestNode = nodeId;
 			} 
 		}
+		if(bestNode == null)System.out.println("VIDEEEEEEEEEEEEEEEE");
+		else System.out.println("BEST NODE: " + bestNode);
 		return bestNode;
 	}
 	

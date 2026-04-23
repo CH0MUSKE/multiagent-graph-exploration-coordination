@@ -134,7 +134,7 @@
             boolean followGolem = false;
 
             // PRIORITÉ 1 : On voit un Golem -> On devient LEADER
-            if (golemNodeFound != null ) {
+            if (golemNodeFound != null && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
                 System.out.println(this.myAgent.getLocalName() + " - GOLEM DÉTECTÉ !");
                 if(golemSamePosTimer == 0) golemSamePosTimer = System.currentTimeMillis();
                 long elapsedTimeGolemTimer = System.currentTimeMillis() - golemSamePosTimer;
@@ -167,7 +167,7 @@
                 this.myagent.setGolemPos(golemNodeFound);
             }
             // PRIORITÉ 2 : On sent quelque chose (et on ne chasse pas déjà)
-            else if (!smellNodes.isEmpty() && this.myagent.getStatus() != AbstractCommunicationAgent.Status.HUNTING) {
+            else if (!smellNodes.isEmpty() && this.myagent.getStatus() != AbstractCommunicationAgent.Status.HUNTING && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
                 System.out.println(this.myAgent.getLocalName() + " - Odeur détectée.");
                 if(this.myagent.getStatus() != AbstractCommunicationAgent.Status.SMELLING){
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
@@ -200,7 +200,7 @@
                     }
                     break;
 
-                case BLOCKING: break;
+                case BLOCKING:  break;
                 default:
                     // Logique d'exploration classique (DFS/ShortestPath)
                     nextNodeId = findExploNextNode(myPosition.getLocationId(), neighbors);
@@ -219,10 +219,11 @@
                     if (hasMoved && followGolem) {
                         golemSamePosTimer = 0;
                     }
-                    if(cpt % 3 == 0)this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
-                    cpt++;
+                    if(!hasMoved)System.out.println(this.myagent.getLocalName() + " est en mode " + this.myagent.getStatus() + "et tente d'aller en: " + nextNodeId);
                 }
             }
+            if(cpt % 3 == 0)this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
+            cpt++;
 
             // Gestion des pings de proximité (si agents détectés)
             if (!nearbyAgents.isEmpty()) {

@@ -23,14 +23,14 @@ public class PropagationBehaviour extends OneShotBehaviour {
         this.agent = agent;
         this.agentList = agentList;
         this.depth = depth - 1;
-        this.conversation_id = this.agent.getCoalitionId();
         this.leader_id = leader_id;
         // hard codé, penser à changer celui de waitingorder si je modifie 
         long eps = 200;
-        this.timeout = timeout - eps;
+        this.timeout = timeout/(depth + 1);
     }
     @Override
     public void action(){
+        this.conversation_id = this.agent.getCoalitionId();
         if(this.depth <= 0 || this.agentList == null || this.agentList.isEmpty() || this.timeout <= 0){
             System.out.println(this.agent.getLocalName() +  " -- Erreur: depth <= 1 ou agentList vide ou timeout <= 0");
             this.exitValue = 0;
