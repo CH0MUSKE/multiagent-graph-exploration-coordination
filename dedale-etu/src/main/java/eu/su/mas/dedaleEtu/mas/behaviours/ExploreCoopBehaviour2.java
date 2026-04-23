@@ -83,8 +83,7 @@
                 for (Couple<Observation, String> o : nodeObservations) {
                     switch (o.getLeft()) {
                         case STENCH:
-                            String val = o.getRight();
-                            smellValue = (val == null || val.isEmpty()) ? 1 : Integer.parseInt(val);
+                            smellValue = 1;
                             smellNodes.add(nodeId);
                             break;
                         case AGENTNAME:
@@ -99,6 +98,7 @@
                                 }
                             }
                             break;
+                        default:break;    
                     }
                 }
 
