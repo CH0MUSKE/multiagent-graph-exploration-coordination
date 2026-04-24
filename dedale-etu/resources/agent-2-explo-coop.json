@@ -68,5 +68,19 @@
     "strengthExpertise": 1,
     "lockPickingExpertise": 1,
     "userParameters": ["Explo1", "Explo2", "Explo3", "Explo4"]
-  }
+  },
+  {
+  "agentType":"wumpus",
+  "agentName": "Golem",
+  "agentClass":"dummies.DummyMovingAgent",
+  "agentInitialContainer":"container2",
+  "communicationRange": 3,
+  "initialLocation": "free",
+  "backPackCapacityGold": 100,
+  "backPackCapacityDiamond":-1,
+  "detectionRadius": 1,
+  "strengthExpertise": 2,
+  "lockPickingExpertise":1,
+  "userParameters": ["paramTest"]
+}
 ]

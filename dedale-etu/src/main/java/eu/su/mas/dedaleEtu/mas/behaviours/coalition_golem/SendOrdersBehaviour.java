@@ -15,15 +15,14 @@ import java.util.List;
 
 public class SendOrdersBehaviour extends OneShotBehaviour {
     AbstractCommunicationAgent agent;
-    String convId;
     public SendOrdersBehaviour(final AbstractCommunicationAgent myagent){
         super(myagent);
         this.agent = myagent;
-        this.convId = this.agent.getCoalitionId();
     }
 
     @Override
     public void action(){
+        String convId = this.agent.getCoalitionId();
         HashMap<String,String> plan = (HashMap<String, String>) this.getDataStore().get("ORDER_GOLEM");
         String curPos = this.agent.getCurrentPosition().getLocationId();
         Serializable[] content = new Serializable[2];
@@ -31,7 +30,7 @@ public class SendOrdersBehaviour extends OneShotBehaviour {
         content[1] = curPos;
 
         if (plan == null) {
-            System.err.println(this.myAgent.getLocalName() + " - Erreur : Aucun plan trouvé dans le DataStore !");
+            System.err.println(this.myAgent.getLocalName() + " - Erreur : Aucun plan trouvé dans le DataStore ! + ( " + this.agent.getCoalitionId() +" )");
             return;
         }
 

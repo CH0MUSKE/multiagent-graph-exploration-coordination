@@ -18,12 +18,23 @@ public class CoalitionLeaderGolemBehaviour extends FSMBehaviour {
     public CoalitionLeaderGolemBehaviour(final AbstractCommunicationAgent myagent, List<String> agentList) {
         super(myagent);
         this.agent = myagent;
-        registerFirstState(new PropagationBehaviour(myagent, depth+1, agentList, timeout, myagent.getAID().getLocalName()),"DIFFUSION");
-        
-        registerState(new ReceiveEchoBehaviour(myagent, timeout), "WAITING_ECHO");
-        registerState(new ComputeSlotsBehaviour(myagent), "COMPUTING_SLOTS");
+        jade.core.behaviours.DataStore commonStore = new jade.core.behaviours.DataStore();
+        this.setDataStore(commonStore);
 
-        registerLastState(new SendOrdersBehaviour(agent), "COALITION_END");
+        PropagationBehaviour prop = new PropagationBehaviour(myagent, depth+1, agentList, timeout, myagent.getAID().getLocalName());
+        ReceiveEchoBehaviour echo = new ReceiveEchoBehaviour(myagent, timeout);
+        ComputeSlotsBehaviour compute = new ComputeSlotsBehaviour(myagent);
+        SendOrdersBehaviour send = new SendOrdersBehaviour(myagent);
+
+
+        compute.setDataStore(commonStore);
+        send.setDataStore(commonStore);
+
+        registerFirstState(prop, "DIFFUSION");
+        registerState(echo, "WAITING_ECHO");
+        registerState(compute, "COMPUTING_SLOTS");
+        registerLastState(send, "COALITION_END");
+        
 
         // registerTransition(Source, Destination, CodeSortie)
 

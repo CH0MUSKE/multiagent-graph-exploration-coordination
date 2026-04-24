@@ -124,6 +124,8 @@
                     MapRepresentation.MapAttribute attrToSet = (currentAttr == null) ?
                             MapRepresentation.MapAttribute.open :
                             currentAttr;
+                    if(type.equals(NodeInfo.Entity.AGENT)) attrToSet = MapRepresentation.MapAttribute.closed;
+                    
                     this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue);
                     this.myMap.addEdge(myPosition.getLocationId(), nodeId);
                 }
@@ -222,13 +224,14 @@
                     if(!hasMoved)System.out.println(this.myagent.getLocalName() + " est en mode " + this.myagent.getStatus() + "et tente d'aller en: " + nextNodeId);
                 }
             }
-            if(cpt % 3 == 0)this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
-            cpt++;
-
             // Gestion des pings de proximité (si agents détectés)
             if (!nearbyAgents.isEmpty()) {
                 this.myagent.addBehaviour(new PingBehaviour(this.myagent, nearbyAgents));
+            }else{
+                if(cpt % 3 == 0)this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
             }
+            cpt++;
+
 
             // Condition de fin d'exploration
             /*if (!this.myMap.hasOpenNode() && this.myagent.getStatus() == AbstractCommunicationAgent.Status.EXPLORING) {

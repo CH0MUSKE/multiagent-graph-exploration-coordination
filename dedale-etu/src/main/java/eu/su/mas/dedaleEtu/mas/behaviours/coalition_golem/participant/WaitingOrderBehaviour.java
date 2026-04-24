@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class WaitingOrderBehaviour extends SimpleBehaviour {
     AbstractCommunicationAgent agent;
-    private final long timeout = 4000;
+    private final long timeout = 7000;
     private final long startTime;
     private boolean finished;
     
@@ -33,7 +33,7 @@ public class WaitingOrderBehaviour extends SimpleBehaviour {
         }
         MessageTemplate template = MessageFactory.buildMultiProtocolTemplate(ACLMessage.INFORM, List.of("ORDER_GOLEM"));
         ACLMessage msg = this.myAgent.receive(template);
-        if (msg != null) {
+        while (msg != null) {
             if (this.agent.checkValidCoalition(msg.getConversationId())) {
                 try {
                     @SuppressWarnings("unchecked")
@@ -42,17 +42,22 @@ public class WaitingOrderBehaviour extends SimpleBehaviour {
                     String order = plan.get(this.agent.getAID().getLocalName());
                     // Si l'agent n'a pas été pris en compte dans le plan, il suit son parent
                     if (order == null) {
-                        order = (String) content[1];
+                        order = this.agent.getGolemPos();
                     }
                     this.agent.setOrderTarget(order);
                     this.finished = true;
                     this.getDataStore().put("ORDER_GOLEM", plan);
+                    System.out.println("plan reçu, je me dirige vers: " + order);
                     return;
 
                 } catch (UnreadableException e) {
                     System.err.println("Erreur de désérialisation : " + e.getMessage());
                 }
             }
+            else{
+                System.out.println("Plan reçu mais convId invalide");
+            }
+            msg = this.myAgent.receive(template);
         }
         long remaining = timeout - (System.currentTimeMillis() - startTime);
         if (remaining > 0) {

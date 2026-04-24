@@ -503,15 +503,16 @@ public class MapRepresentation implements Serializable {
 				
 				long new_time = infoRecue.lastUpdate;
 				String currentStatus = (String) newnode.getAttribute("ui.class");
-				boolean tryingToReopen = currentStatus.equals(MapAttribute.closed.toString())
-						&& infoRecue.statut.equals(MapAttribute.open);
+				boolean tryingToReopen = (currentStatus.equals(MapAttribute.closed.toString())
+						&& infoRecue.statut.equals(MapAttribute.open) )
+						|| (currentStatus.equals(MapAttribute.blocked.toString()) 
+				&& (infoRecue.statut.equals(MapAttribute.closed) || infoRecue.statut.equals(MapAttribute.open)));
 				
-				if (new_time > curr_time && !tryingToReopen){
+				if (new_time > curr_time){
 					boolean changeEntityLocation = false;
 					if (infoRecue.entityId != null) {
 						changeEntityLocation = updateEntityLocation(infoRecue.entityId, newnode.getId(), new_time);
 					}
-					newnode.setAttribute("ui.class", infoRecue.statut.toString());
 					newnode.setAttribute("lastUpdate", new_time);
 					if(changeEntityLocation){
 						newnode.setAttribute("entityType", infoRecue.entityType.toString());
@@ -523,6 +524,7 @@ public class MapRepresentation implements Serializable {
 					}
 					newnode.setAttribute("smell", infoRecue.smell);
 				}
+				if(!tryingToReopen)	newnode.setAttribute("ui.class", infoRecue.statut.toString());
 				
 			}
 		}
@@ -625,7 +627,8 @@ public class MapRepresentation implements Serializable {
 						// Si l'attribut est null, on considère la case libre.
 						// Sinon, on vérifie si ce n'est pas un AGENT.
 						if (etAttr == null) return true;
-						return !NodeInfo.Entity.AGENT.toString().equals(etAttr.toString());
+						return !(NodeInfo.Entity.AGENT.toString().equals(etAttr.toString())
+						&& ((long )n.getAttribute("lastUpdate") - System.currentTimeMillis()) <= 1);
 					})
 					.count();
 

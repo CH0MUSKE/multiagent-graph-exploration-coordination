@@ -15,11 +15,23 @@ public class CoalitionParticipantGolemBehaviour extends FSMBehaviour {
     public CoalitionParticipantGolemBehaviour(final AbstractCommunicationAgent agent, long timeout, List<String> agentList, int depth, String leader_id){
         super(agent);
         this.agent = agent;
-        registerFirstState(new PropagationBehaviour(agent, depth, agentList,timeout, leader_id),"DIFFUSION");
-        registerState(new ReceiveEchoBehaviour(agent, timeout),"WAITING_ECHO");
-        registerState(new SendEchoBehaviour(agent), "SENDING_ECHO");
-        registerState(new WaitingOrderBehaviour(agent), "WAITING_ORDER");
-        registerLastState(new SendOrdersBehaviour(agent), "SENDING_ORDER_CHILDREN");
+        jade.core.behaviours.DataStore commonStore = new jade.core.behaviours.DataStore();
+        this.setDataStore(commonStore);
+
+        PropagationBehaviour diffusion = new PropagationBehaviour(agent, depth, agentList, timeout, leader_id);
+        ReceiveEchoBehaviour waitingEcho = new ReceiveEchoBehaviour(agent, timeout);
+        SendEchoBehaviour sendingEcho = new SendEchoBehaviour(agent);
+        WaitingOrderBehaviour waitingOrder = new WaitingOrderBehaviour(agent);
+        SendOrdersBehaviour sendingOrderChildren = new SendOrdersBehaviour(agent);
+
+        waitingOrder.setDataStore(commonStore);
+        sendingOrderChildren.setDataStore(commonStore);
+
+        registerFirstState(diffusion, "DIFFUSION");
+        registerState(waitingEcho, "WAITING_ECHO");
+        registerState(sendingEcho, "SENDING_ECHO");
+        registerState(waitingOrder, "WAITING_ORDER");
+        registerLastState(sendingOrderChildren, "SENDING_ORDER_CHILDREN");
 
         
         registerTransition("DIFFUSION", "WAITING_ECHO",1);

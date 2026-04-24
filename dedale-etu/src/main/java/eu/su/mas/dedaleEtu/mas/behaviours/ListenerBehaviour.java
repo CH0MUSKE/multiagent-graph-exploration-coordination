@@ -31,8 +31,9 @@ public class ListenerBehaviour extends CyclicBehaviour {
     
     @Override
     public void action(){
-        ACLMessage msgReceived=this.myAgent.receive(this.template);
-        if(msgReceived != null){
+        // On boucle tant qu'il y a des messages dans la file
+        ACLMessage msgReceived;
+        while ((msgReceived = this.myAgent.receive(this.template)) != null) {
             String protocol = msgReceived.getProtocol();
             switch (protocol){
                 case "PING" -> pingHandler(msgReceived);
@@ -43,10 +44,8 @@ public class ListenerBehaviour extends CyclicBehaviour {
                 case "SMELL" -> smellHandler(msgReceived);
             }
         }
-        else{
-            block();
-        }
-
+        // La boîte est vide, on peut laisser la main aux autres behaviours
+        block();
     }
     
     // On envoie la position juste pour envoyer quelque chose mais pour l'instant ça sert à rien
@@ -63,20 +62,25 @@ public class ListenerBehaviour extends CyclicBehaviour {
         if(pos != null){
             Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
             if (myPosition != null && myPosition.getLocationId() != null && !myPosition.getLocationId().isEmpty()) {
-                ACLMessage mess = MessageFactory.buildMsg(this.myAgent.getAID(), monoList, "PONG", myPosition.getLocationId(), conversation_id);
-                ((AbstractDedaleAgent) this.myAgent).sendMessage(mess);
+                this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent,conversation_id, myPosition.getLocationId(), "PONG",monoList));
             }        
         }
     }
     
     private void pongHandler(ACLMessage msg){
-        System.out.println("PONG RECU ");
+        System.out.println(this.myagent.getLocalName() +  ": PONG RECU ");
         String conv_id = msg.getConversationId();
         String sender_id = msg.getSender().getLocalName();
         Long currtime = System.currentTimeMillis();
-        if(!this.myagent.checkValidId(conv_id) || this.myagent.hasAlreadySentMap(sender_id)){
+        if(!this.myagent.checkValidId(conv_id)){
+            System.out.println(this.myagent.getLocalName() + ": convId invalide | " + conv_id);
             return;
         }
+        if(this.myagent.hasAlreadySentMap(sender_id)){
+            System.out.println(this.myagent.getLocalName() + ": map déjà envoyé " + conv_id);
+            return;
+        }
+        System.out.println(this.myagent.getLocalName() + ": Calcul du subgraph...");
         Long lastConv = this.myagent.getLastConvRegistry(sender_id);
         SerializableSimpleGraph sg = this.myagent.getMyMap().createSubGraph(lastConv);
         this.myAgent.addBehaviour(new SendMsgBehaviour((AbstractDedaleAgent)myAgent, conv_id, sg, "SHARE-MAP", List.of(sender_id)));
@@ -116,9 +120,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
         if (sgreceived != null) {
             this.myagent.getMyMap().mergeMap(sgreceived);
             System.out.println("merged !");
-
-            ACLMessage mess = MessageFactory.buildMsg(this.myAgent.getAID(), List.of(sender_id), "ACK","", conv_id);
-            ((AbstractDedaleAgent) this.myAgent).sendMessage(mess);
+            this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent, conv_id, "", "ACK",List.of(sender_id)));
         } else {
             System.out.println("Erreur : Graphe reçu vide ou corrompu.");
         }
@@ -192,6 +194,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
             if(smellNodes != null){
                 this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
                 this.myagent.setOrderTarget(smellNodes.get((int) (Math.random() * smellNodes.size())));
+                System.out.println(this.myagent.getLocalName() +  " -> SMELL_GOLEM reçu, je me dirige vers: " + this.myagent.getOrderTarget());
             }
         }
     }

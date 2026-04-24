@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 public class ComputeSlotsBehaviour extends OneShotBehaviour {
     AbstractCommunicationAgent myagent;
+    HashMap <String,String> plan;
     public ComputeSlotsBehaviour(AbstractCommunicationAgent myagent){
         super(myagent);
         this.myagent = myagent;
@@ -46,13 +47,14 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
         int validSize = validCoalition.size();
         HashMap<String,String> plan = new HashMap<>();
         if (validSize > 0) {
-            System.out.println("Calcul du plan en cours...");
-            String bestChokePoint = map.selectBestChokePoint(golemPos, validSize);
+            System.out.println(this.myagent.getLocalName() +  " -> Calcul du plan en cours... ( " + this.myagent.getCoalitionId() + " )");
+            String bestChokePoint = golemPos;
             if (bestChokePoint != null) {
                 this.myagent.setOrderTarget(bestChokePoint);
-                System.out.println("Début de l'allocation");
+                System.out.println(this.myagent.getLocalName() +  " -> Début de l'allocation ( " + this.myagent.getCoalitionId() + " )");
                 plan = map.chokePointAllocation(validCoalition, bestChokePoint, this.myagent.getCurrentPosition().getLocationId());
-                System.out.println("Allocation terminée");
+                System.out.println(this.myagent.getLocalName() +  " -> Allocation terminée ( " + this.myagent.getCoalitionId()
+                        + " )");
             }
             else{
                 System.out.println("Aucun plan trouvé");
@@ -62,6 +64,7 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
             System.err.println("Aucun membre de la coalition n'a une position connue, on attends la prochaine coalition ");
         }
         this.getDataStore().put("ORDER_GOLEM", plan);
+        if(getDataStore().get("ORDER_GOLEM") == null) System.out.println("PLAN NULL");
 
     }
 }
