@@ -1,5 +1,8 @@
 package eu.su.mas.dedaleEtu.princ;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +28,7 @@ import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
 import jade.wrapper.AgentContainer;
 
@@ -47,6 +51,14 @@ public class Principal {
 	private static Runtime rt;	
 
 	public static void main(String[] args){
+
+		try {
+			PrintStream out = new PrintStream(new FileOutputStream("output.txt"));
+			System.setOut(out);
+			System.setErr(out); // Redirige aussi les erreurs rouges
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
 
 
 		if(ConfigurationFile.COMPUTERisMAIN){
@@ -73,8 +85,6 @@ public class Principal {
 			startAgents(agentList);
 		}
 	}
-
-
 
 	/**********************************************
 	 * 
@@ -334,7 +344,7 @@ public class Principal {
 	 * @param agentCaracteristics Mandatory parameters used to create the agent (first item is agentCarac object from file, second is gakeKeeper's name)
 	 */
 	//TODO remove initialContainer from the parameters of the method and get it from the agentCaracteristics
-	private static AgentController createNewDedaleAgent2(ContainerController initialContainer, Object[] agentCaracteristics){
+	private static AgentController createNewDedaleAgent2(@NotNull ContainerController initialContainer, Object[] agentCaracteristics){
 		
 		//Get the agent characteristics
 		EntityCharacteristics ec=(EntityCharacteristics) agentCaracteristics[0];

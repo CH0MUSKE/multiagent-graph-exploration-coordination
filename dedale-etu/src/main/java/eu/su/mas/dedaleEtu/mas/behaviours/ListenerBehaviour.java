@@ -7,6 +7,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import eu.su.mas.dedaleEtu.mas.behaviours.coalition_golem.participant.CoalitionParticipantGolemBehaviour;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
 import eu.su.mas.dedaleEtu.mas.utils.MessageFactory;
 import jade.core.AID;
@@ -14,6 +15,7 @@ import jade.core.behaviours.CyclicBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
+import org.graphstream.graph.Node;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -48,23 +50,18 @@ public class ListenerBehaviour extends CyclicBehaviour {
         block();
     }
     
-    // On envoie la position juste pour envoyer quelque chose mais pour l'instant ça sert à rien
     private void pingHandler(ACLMessage msg){
-        String pos = null;
+        int smellRadius = 0;
         String sender = msg.getSender().getLocalName();
         List <String> monoList = List.of(sender);
         String conversation_id = msg.getConversationId();
         try {
-            pos = (String)msg.getContentObject();
+            smellRadius = (int)msg.getContentObject();
+            this.myagent.setGlobalEstimatedGolemSmell(smellRadius);
         } catch (UnreadableException e) {
             e.printStackTrace();
         }
-        if(pos != null){
-            Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
-            if (myPosition != null && myPosition.getLocationId() != null && !myPosition.getLocationId().isEmpty()) {
-                this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent,conversation_id, myPosition.getLocationId(), "PONG",monoList));
-            }        
-        }
+        this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent,conversation_id, "", "PONG",monoList));
     }
     
     private void pongHandler(ACLMessage msg){
@@ -118,7 +115,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
             e.printStackTrace();
         }
         if (sgreceived != null) {
-            this.myagent.getMyMap().mergeMap(sgreceived);
+            this.myagent.getMyMap().mergeMap( this.myagent.getLocalName(),sgreceived);
             System.out.println("merged !");
             this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent, conv_id, "", "ACK",List.of(sender_id)));
         } else {
@@ -134,6 +131,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
     }
     
     private void floodHandler(ACLMessage msg) {
+        if(this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) return;
         String conversation_id = msg.getConversationId();
         String[] content = null;
         try {
@@ -150,6 +148,10 @@ public class ListenerBehaviour extends CyclicBehaviour {
         long timeout = Long.parseLong(content[2]);
         int depth = Integer.parseInt(content[3]);
         String senderId = msg.getSender().getLocalName();
+        
+        Node golem_node = this.myagent.getMyMap().getG().getNode(golem_pos);
+        
+        if(golem_node == null || golem_node.getAttribute("ui.class").equals(MapRepresentation.MapAttribute.blocked)) return;
 
         boolean transitionAuthorized = false;
 

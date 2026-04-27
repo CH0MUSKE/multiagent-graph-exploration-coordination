@@ -81,7 +81,7 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
     @Override
     public int onEnd() {
         if (this.agent.getCoalitionSize() > 0) {
-            System.out.println("Succès ! (Sous) coalition formée avec " + this.agent.getCoalitionSize() + " membres.");
+            System.out.println("Succès ! (Sous) coalition formée avec " + this.agent.getCoalitionSize() + " membres. ( " + this.agent.getCoalitionId() + " )");
             return 1; 
         } else {
             System.out.println("Échec... personne n'a répondu. Tentative de re-ping.");

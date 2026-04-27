@@ -17,7 +17,7 @@ public class SendEchoBehaviour extends OneShotBehaviour {
     @Override
     public void action(){
         this.agent.getCoalition().put(this.agent.getAID().getLocalName(), this.agent.getCurrentPosition().getLocationId());
-        ACLMessage msg = MessageFactory.buildMsg(this.agent.getAID(), List.of(this.agent.getLeaderId()), "ECHO_GOLEM", this.agent.getCoalition(), this.agent.getCoalitionId());
+        ACLMessage msg = MessageFactory.buildMsg(this.agent.getAID(), List.of(this.agent.getParent()), "ECHO_GOLEM", this.agent.getCoalition(), this.agent.getCoalitionId());
         this.agent.sendMessage(msg);
 
     }

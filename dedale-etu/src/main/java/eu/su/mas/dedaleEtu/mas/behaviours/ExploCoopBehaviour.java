@@ -134,7 +134,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					this.myMap.mergeMap(sgreceived);
+					this.myMap.mergeMap("",sgreceived);
 					System.out.println("merged !");
 				}
 

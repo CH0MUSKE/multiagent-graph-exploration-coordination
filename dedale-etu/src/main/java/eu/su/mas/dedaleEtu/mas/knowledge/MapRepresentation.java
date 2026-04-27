@@ -142,31 +142,44 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public synchronized boolean updateEntityLocation(String entityName, String newNodeId, long lastUpdate) {
-		if (entityName.isEmpty()) return true;
+		if (!entityName.isEmpty()){
+			// 1. On cherche où était cette entité avant
+			String oldNodeId = entityPositions.get(entityName);
 
-		// 1. On cherche où était cette entité avant
-		String oldNodeId = entityPositions.get(entityName);
-
-		// 2. Si elle a bougé (old != new)
-		if (oldNodeId != null && !oldNodeId.equals(newNodeId)) {
-			// On récupère l'ancien nœud pour le vider
-			org.graphstream.graph.Node oldNode = g.getNode(oldNodeId);
-			if (oldNode != null) {
-				if((long)oldNode.getAttribute("lastUpdate") < lastUpdate){
-					oldNode.setAttribute("entityType", NodeInfo.Entity.EMPTY.toString());
-					oldNode.setAttribute("entityId", "");
-				}
-				else{
-					return false;
+			// 2. Si elle a bougé (old != new)
+			if (oldNodeId != null && !oldNodeId.equals(newNodeId)) {
+				// On récupère l'ancien nœud pour le vider
+				org.graphstream.graph.Node oldNode = g.getNode(oldNodeId);
+				if (oldNode != null) {
+					if((long)oldNode.getAttribute("lastUpdate") <= lastUpdate){
+						oldNode.setAttribute("entityType", NodeInfo.Entity.EMPTY.toString());
+						oldNode.setAttribute("entityId", "");
+					}
+					else{
+						return false;
+					}
 				}
 			}
+			// 3. On met à jour l'index avec la nouvelle position
+			entityPositions.put(entityName, newNodeId);
+			return true;
 		}
-		// 3. On met à jour l'index avec la nouvelle position
-		entityPositions.put(entityName, newNodeId);
-		return true;
+		else {
+			org.graphstream.graph.Node n = g.getNode(newNodeId);
+			if (n != null) {
+				// On regarde qui était enregistré sur ce nœud AVANT de le modifier
+				String agentWhoWasHere = (String) n.getAttribute("entityId");
+				if (agentWhoWasHere != null && !agentWhoWasHere.isEmpty()) {
+					entityPositions.remove(agentWhoWasHere);
+					System.out.println("Nettoyage : " + agentWhoWasHere + " n'est plus sur " + newNodeId);
+				}
+			}
+			return true;
+		}
 	}
 
-	public List<String> getStaleNodes(long thresholdMs) {
+
+	public synchronized List<String> getStaleNodes(long thresholdMs) {
 		long now = System.currentTimeMillis();
 		return g.nodes()
 				.filter(n -> {
@@ -310,6 +323,14 @@ public class MapRepresentation implements Serializable {
 
 		Node target = g.getNode(idTo);
 		if (target != null && dijkstra.getPath(target) != null) {
+			double totalWeight = dijkstra.getPathLength(target);
+
+			// Si le poids est >= 1000, cela signifie qu'au moins une arête 
+			// du chemin mène à un nœud "blocked"
+			if (totalWeight >= 1000.0) {
+				dijkstra.clear();
+				return null; // On refuse le chemin car il est bloqué stratégiquement
+			}
 			dijkstra.getPath(target).nodes().forEach(n -> shortestPath.add(n.getId()));
 		}
 		dijkstra.clear();
@@ -336,7 +357,7 @@ public class MapRepresentation implements Serializable {
 
 
 
-	public List<String> getOpenNodes(){
+	public synchronized List<String> getOpenNodes(){
 		return this.g.nodes()
 				.filter(x ->x .getAttribute("ui.class")==MapAttribute.open.toString()) 
 				.map(Node::getId)
@@ -472,7 +493,7 @@ public class MapRepresentation implements Serializable {
 
 	}
 	
-	public void mergeMap(SerializableSimpleGraph<String, NodeInfo> sgreceived) {
+	public synchronized void mergeMap(String agent,SerializableSimpleGraph<String, NodeInfo> sgreceived) {
 		//System.out.println("You should decide what you want to save and how");
 		//System.out.println("We currently blindy add the topology");
 
@@ -508,7 +529,13 @@ public class MapRepresentation implements Serializable {
 						|| (currentStatus.equals(MapAttribute.blocked.toString()) 
 				&& (infoRecue.statut.equals(MapAttribute.closed) || infoRecue.statut.equals(MapAttribute.open)));
 				
-				if (new_time > curr_time){
+				System.out.println("merge de " + agent + " en cours -> new_time = " + new_time + " | curr_time = " + curr_time + " | node concerné: " + n.getNodeId());
+				if(entityPositions.get(infoRecue.entityId) != null && !entityPositions.get(infoRecue.entityId).isEmpty() ){
+					System.out.println(agent  + " old position of: " + infoRecue.entityId + " -> " + "( " + this.entityPositions.get(infoRecue.entityId) + ", " + this.g.getNode(entityPositions.get(infoRecue.entityId)).getAttribute("lastUpdate")+ " )");
+				}
+				
+
+				if (new_time >= curr_time){
 					boolean changeEntityLocation = false;
 					if (infoRecue.entityId != null) {
 						changeEntityLocation = updateEntityLocation(infoRecue.entityId, newnode.getId(), new_time);
@@ -524,6 +551,9 @@ public class MapRepresentation implements Serializable {
 					}
 					newnode.setAttribute("smell", infoRecue.smell);
 				}
+				System.out.println(agent  + " new position of: " + infoRecue.entityId + " -> " + this.entityPositions.get(infoRecue.entityId));
+				
+
 				if(!tryingToReopen)	newnode.setAttribute("ui.class", infoRecue.statut.toString());
 				
 			}
@@ -548,7 +578,7 @@ public class MapRepresentation implements Serializable {
 				.findAny()).isPresent();
 	}
 
-	public SerializableSimpleGraph<String, NodeInfo> createSubGraph(Long lastConv) {
+	public synchronized SerializableSimpleGraph<String, NodeInfo> createSubGraph(Long lastConv) {
 		// 1. Initialisation du graphe sérialisable vide
 		SerializableSimpleGraph<String, NodeInfo> subGraph = new SerializableSimpleGraph<String, NodeInfo>();
 
@@ -598,7 +628,9 @@ public class MapRepresentation implements Serializable {
 		return subGraph;
 	}
 
-	public boolean isGolemSurrounded(String golemPos) {
+	public synchronized boolean isGolemSurrounded(String golemPos) {
+		List<String> openNodes = getOpenNodes();
+		if(openNodes.contains(golemPos)) return false;
 		org.graphstream.graph.Node node = this.g.getNode(golemPos);
 		if (node == null) return false;
 
@@ -613,6 +645,41 @@ public class MapRepresentation implements Serializable {
 			}
 		}
 		return true;
+	}
+
+	// on fait un bfs pour voir s'il y a un golem bloqué dans le rayon estimé
+	public synchronized List<String> filterExplainedSmells(Map<String, Integer> observedStenches, int radius) {
+		List<String> suspiciousSmells = new ArrayList<>();
+
+		// 1. On récupère TOUS les Golems bloqués sur la carte une seule fois
+		List<String> blockedGolems = this.g.nodes()
+				.filter(n -> MapAttribute.blocked.toString().equals(n.getAttribute("ui.class")) && ((String)n.getAttribute("entityId")).isEmpty())
+				.map(Node::getId)
+				.collect(Collectors.toList());
+
+		// 2. Pour chaque nœud où on a détecté une odeur
+		for (Map.Entry<String, Integer> entry : observedStenches.entrySet()) {
+			String smellNodeId = entry.getKey();
+			int nbStenchesObserved = entry.getValue();
+			int explainedByBlocked = 0;
+
+			// 3. On regarde combien de Golems bloqués sont dans le rayon de CE nœud précis
+			for (String blockedPos : blockedGolems) {
+				// On utilise une version légère de distance (BFS ou Dijkstra)
+				List<String> path = getShortestPath(smellNodeId, blockedPos);
+				if (path != null && path.size() <= radius) {
+					explainedByBlocked++;
+				}
+			}
+
+			// 4. Si le nombre d'odeurs senties est > au nombre de golems bloqués à proximité
+			// Alors il y a au moins un Golem libre !
+			if (nbStenchesObserved > explainedByBlocked) {
+				suspiciousSmells.add(smellNodeId);
+			}
+		}
+
+		return suspiciousSmells;
 	}
 
 
@@ -670,6 +737,7 @@ public class MapRepresentation implements Serializable {
 	
 	// Extremement lourd en calcul, trouver autre chose si c'est trop lent
 	public HashMap<String, String> chokePointAllocation(HashMap<String, String> agentPos, String selectedChokePoint, String currentPos) {
+		System.out.println("allocation en cours");
 		Node n = this.g.getNode(selectedChokePoint);
 		List<String> availableSlots = n.neighborNodes().map(Node::getId).collect(Collectors.toList());
 		availableSlots.remove(currentPos);
@@ -696,6 +764,7 @@ public class MapRepresentation implements Serializable {
 				assignments.put(c.agentName, c.slotId);
 				assignedAgents.add(c.agentName);
 				occupiedSlots.add(c.slotId);
+				System.out.println("agent_name: " + c.agentName + " | slot: " + c.slotId);
 			}
 		}
 		return assignments;

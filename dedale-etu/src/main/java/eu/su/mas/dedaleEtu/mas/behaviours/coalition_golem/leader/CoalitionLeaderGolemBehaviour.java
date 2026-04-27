@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 
 public class CoalitionLeaderGolemBehaviour extends FSMBehaviour {
-    final long timeout = 5000;
+    final long timeout = 2000;
     final int depth = 3;
     private final AbstractCommunicationAgent agent;
 

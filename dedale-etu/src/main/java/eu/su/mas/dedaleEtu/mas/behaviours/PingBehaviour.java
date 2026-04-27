@@ -27,10 +27,7 @@ public class PingBehaviour extends OneShotBehaviour {
     public void action() {
         String conversation_id = this.myAgent.getLocalName() + " " + System.currentTimeMillis();
         this.myagent.addConvId(conversation_id);
-        Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
-        if (myPosition != null && myPosition.getLocationId() != null && !myPosition.getLocationId().isEmpty()) {
-            ACLMessage msg = MessageFactory.buildMsg(this.myAgent.getAID(), agentNames, "PING", myPosition.getLocationId(), conversation_id);
-            ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
-        }
+        ACLMessage msg = MessageFactory.buildMsg(this.myAgent.getAID(), agentNames, "PING", this.myagent.getGlobalEstimatedGolemSmell(), conversation_id);
+        ((AbstractDedaleAgent) this.myAgent).sendMessage(msg);
     }
 }

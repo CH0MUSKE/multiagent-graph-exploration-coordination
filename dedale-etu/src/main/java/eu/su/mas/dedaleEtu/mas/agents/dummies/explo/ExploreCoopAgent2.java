@@ -7,8 +7,12 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.AbstractCommunicationAgent;
 import eu.su.mas.dedaleEtu.mas.behaviours.ExploreCoopBehaviour2;
 import eu.su.mas.dedaleEtu.mas.behaviours.ListenerBehaviour;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.utils.MultiAgentRouterStream;
 import jade.core.behaviours.Behaviour;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.*;
 
 public class ExploreCoopAgent2 extends AbstractCommunicationAgent {

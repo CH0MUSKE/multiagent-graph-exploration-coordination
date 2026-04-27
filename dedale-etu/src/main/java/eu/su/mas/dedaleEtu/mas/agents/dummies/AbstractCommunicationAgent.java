@@ -31,6 +31,7 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
     public List<String> agentList = new ArrayList<>();
     private Behaviour currentCoalitionBehaviour = null;
     private String parent = "";
+    private int globalEstimatedGolemSmell = 0;
     
 
     
@@ -215,5 +216,13 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
     
     public String getParent(){
         return this.parent;
+    }
+
+    public int getGlobalEstimatedGolemSmell() {
+        return globalEstimatedGolemSmell;
+    }
+
+    public void setGlobalEstimatedGolemSmell(int globalEstimatedGolemSmell) {
+        this.globalEstimatedGolemSmell = Math.max(this.globalEstimatedGolemSmell, globalEstimatedGolemSmell);
     }
 }

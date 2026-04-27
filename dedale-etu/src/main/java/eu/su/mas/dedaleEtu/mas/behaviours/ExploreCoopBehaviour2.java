@@ -16,12 +16,11 @@
     import jade.lang.acl.ACLMessage;
     import jade.lang.acl.MessageTemplate;
     import jade.lang.acl.UnreadableException;
+    import org.graphstream.graph.Node;
 
     import java.io.Serializable;
-    import java.util.ArrayList;
-    import java.util.Iterator;
-    import java.util.List;
-    
+    import java.util.*;
+
     public class ExploreCoopBehaviour2 extends SimpleBehaviour{
         private static final long serialVersionUID = 8567774731496787661L;
     
@@ -31,9 +30,10 @@
         private MapRepresentation myMap;
         private AbstractCommunicationAgent myagent;
         private int cpt;
-        private long golemSamePosTimer = 0;
         private long lastCoalitionTimestamp = 0;
-        final long golemSamePosTimerThreshold = 20000;
+        private String firstPosSmell = "";
+        private String oldPos = "";
+        
         
         public ExploreCoopBehaviour2(final AbstractCommunicationAgent myagent, List<String> agentNames){
             super(myagent);
@@ -53,8 +53,7 @@
             Location myPosition = ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
             if (myPosition == null) return;
             if(myPosition.getLocationId().equals(this.myagent.getOrderTarget())){
-                this.myagent.setOrderTarget("");
-                this.myagent.setLeaderId("");
+                this.myagent.stopCurrentCoalition();
                 this.myagent.setStatus(AbstractCommunicationAgent.Status.EXPLORING);
             }
 
@@ -67,24 +66,24 @@
             List<String> smellNodes = new ArrayList<>();
             List<String> nearbyAgents = new ArrayList<>();
             List<String> neighbors = new ArrayList<>();
+            HashMap<String, Integer> smellValueNodes = new HashMap<>();
+
 
             // 2. Traitement des observations et mise à jour de la carte
             for (Couple<Location, List<Couple<Observation, String>>> obs : lobs) {
                 Location nodeLocation = obs.getLeft();
                 String nodeId = nodeLocation.getLocationId();
                 List<Couple<Observation, String>> nodeObservations = obs.getRight();
-
+                
                 NodeInfo.Entity type = NodeInfo.Entity.EMPTY;
                 String entityName = "";
                 int smellValue = 0;
-                
-                if(!nodeId.equals(myPosition.getLocationId()))neighbors.add(nodeId);
 
                 for (Couple<Observation, String> o : nodeObservations) {
                     switch (o.getLeft()) {
                         case STENCH:
-                            smellValue = 1;
-                            smellNodes.add(nodeId);
+                            smellValue += 1;
+                            if(!smellNodes.contains(nodeId)) smellNodes.add(nodeId);
                             break;
                         case AGENTNAME:
                             entityName = o.getRight();
@@ -101,6 +100,11 @@
                         default:break;    
                     }
                 }
+                if(smellValue != 0) smellValueNodes.put(nodeId, smellValue);
+
+                if(!nodeId.equals(myPosition.getLocationId()) && (entityName.isEmpty())){
+                    neighbors.add(nodeId);
+                }
 
                 // Mise à jour de la Map
                 // On récupère le statut actuel dans la map AVANT de faire quoi que ce soit
@@ -116,31 +120,96 @@
                 }
 
                 // 2. 
+                MapRepresentation.MapAttribute attrToSet = null;
                 if (nodeId.equals(myPosition.getLocationId())) {
-                    this.myMap.addNode(nodeId, MapRepresentation.MapAttribute.closed, type, entityName, smellValue);
+                    attrToSet = (currentAttr == null || currentAttr.equals(MapRepresentation.MapAttribute.open)) ?
+                            MapRepresentation.MapAttribute.closed :
+                            currentAttr;
+                    this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.AGENT, this.myagent.getLocalName(), smellValue);
                 } else {
                     // Si currentAttr est null, c'est que le noeud est nouveau -> open
                     // Sinon, on garde ce qu'il y avait 
-                    MapRepresentation.MapAttribute attrToSet = (currentAttr == null) ?
+                    attrToSet = (currentAttr == null) ?
                             MapRepresentation.MapAttribute.open :
                             currentAttr;
-                    if(type.equals(NodeInfo.Entity.AGENT)) attrToSet = MapRepresentation.MapAttribute.closed;
-                    
-                    this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue);
-                    this.myMap.addEdge(myPosition.getLocationId(), nodeId);
+                    if(type.equals(NodeInfo.Entity.AGENT) && !attrToSet.equals(MapRepresentation.MapAttribute.blocked)) attrToSet = MapRepresentation.MapAttribute.closed;
+                    if(golemNodeFound != null && this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)){
+                        this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.EMPTY, "", smellValue);
+                        this.myMap.addEdge(myPosition.getLocationId(), nodeId);
+                    }
+                    else{
+                        this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue);
+                        this.myMap.addEdge(myPosition.getLocationId(), nodeId);
+                    }
+
                 }
             }
 
             // 3. Logique de décision (Transitions de Statut)
             String nextNodeId = null;
             boolean followGolem = false;
+            System.out.println(this.myagent.getLocalName() + ": estimatedSmell -> " + this.myagent.getGlobalEstimatedGolemSmell());
+            
+            if(!smellNodes.isEmpty()){
+                smellNodes = this.myMap.filterExplainedSmells(smellValueNodes, this.myagent.getGlobalEstimatedGolemSmell());
+                if(this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.EXPLORING)){
+                    this.firstPosSmell = myPosition.getLocationId();
+                    System.out.println( this.myagent.getLocalName() + ": estimated smell -> "+ this.myagent.getGlobalEstimatedGolemSmell());
 
+                }
+            }
+            
+            if (golemNodeFound == null) {
+                // Cas 1 : On est le Leader de la coalition
+                // On arrête tout car on a perdu la cible de vue
+                if (this.myagent.getLeaderId().equals(this.myagent.getLocalName())) {
+                    System.out.println(this.myagent.getLocalName() + " - Golem perdu, dissolution de la coalition.");
+                    this.myagent.stopCurrentCoalition(); // Remet le status en EXPLORING et vide les targets
+                }
+
+                // Cas 2 : On était en train de bloquer (BLOCKING)
+                // Le Golem a dû s'enfuir ou se téléporter
+                // plus censé arrivé maintenant mais je laisse au cas où
+                else if (this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
+                    System.out.println(this.myagent.getLocalName() + " - Le Golem a forcé le passage, reprise de l'explo.");
+                    this.myagent.setStatus(AbstractCommunicationAgent.Status.EXPLORING);
+                    this.myagent.setOrderTarget("");
+                    Node nodeOldPos = this.myagent.getMyMap().getG().getNode(this.oldPos);
+                    if(nodeOldPos != null)nodeOldPos.setAttribute("ui.class","closed");
+                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("ui.class","closed");
+                }
+            }
+            else{
+                int estimatedSmell = this.myMap.getShortestPath(firstPosSmell, golemNodeFound).size() - 1;
+                this.myagent.setGlobalEstimatedGolemSmell(estimatedSmell);
+            }
             // PRIORITÉ 1 : On voit un Golem -> On devient LEADER
+
             if (golemNodeFound != null && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
                 System.out.println(this.myAgent.getLocalName() + " - GOLEM DÉTECTÉ !");
-                if(golemSamePosTimer == 0) golemSamePosTimer = System.currentTimeMillis();
-                long elapsedTimeGolemTimer = System.currentTimeMillis() - golemSamePosTimer;
-                if(this.myagent.getMyMap().isGolemSurrounded(golemNodeFound) || elapsedTimeGolemTimer >= golemSamePosTimerThreshold){
+                // --- DEBUG ZONE ---
+                org.graphstream.graph.Node gNode = this.myMap.getG().getNode(golemNodeFound);
+                if (gNode != null) {
+                    StringBuilder sb = new StringBuilder();
+                    sb.append("\n=== [DEBUG SLOTS] Agent: ").append(this.myagent.getLocalName()).append(" ===\n");
+                    sb.append("Golem en: ").append(golemNodeFound).append("\n");
+
+                    gNode.neighborNodes().forEach(neighbor -> {
+                        String nId = neighbor.getId();
+                        // On récupère le nom de l'entité stocké dans l'attribut du noeud
+                        Object entity = neighbor.getAttribute("entityId");
+                        Object type = neighbor.getAttribute("ui.class"); // Pour voir si c'est open/closed
+
+                        sb.append(" -> Slot ").append(nId)
+                                .append(" [").append(type != null ? type : "unknown").append("]")
+                                .append(" : ").append((entity != null && !entity.toString().isEmpty()) ? "AGENT: " + entity : "VIDE")
+                                .append("\n");
+                    });
+                    sb.append("=========================================");
+                    System.out.println(sb.toString());
+                }
+                // --- END DEBUG ---
+                if(this.myagent.getMyMap().isGolemSurrounded(golemNodeFound)){
                     this.myagent.getMyMap().getG().getNode(golemNodeFound).setAttribute("ui.class","blocked");
                     this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("ui.class","blocked");
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.BLOCKING);
@@ -149,9 +218,9 @@
                     long elaspedTimeSinceCoalition = System.currentTimeMillis() - this.lastCoalitionTimestamp;
                     followGolem = true;
 
-                    if((this.myagent.getLeaderId().isBlank() || this.myagent.getLeaderId().equals(this.myagent.getAID().getLocalName())) && (elaspedTimeSinceCoalition >= 10000)){
+                    if((this.myagent.getLeaderId().isBlank() || this.myagent.getLeaderId().equals(this.myagent.getAID().getLocalName())) && (elaspedTimeSinceCoalition >= 5000)){
                         // On génère un ID de conversation unique
-                        String cid = "Coalition_" + System.currentTimeMillis();
+                        String cid = this.myagent.getLocalName() + " Coalition_" + System.currentTimeMillis();
                         // On lance le comportement de Leader
                         System.out.println(this.myAgent.getLocalName() + " - Lancement coalition...");
                         this.myagent.stopCurrentCoalition();
@@ -165,13 +234,16 @@
                                 ""
                         );
                     }
+                    else{
+                        this.myagent.setStatus(AbstractCommunicationAgent.Status.HUNTING);
+                    }
                 }
                 this.myagent.setGolemPos(golemNodeFound);
             }
             // PRIORITÉ 2 : On sent quelque chose (et on ne chasse pas déjà)
             else if (!smellNodes.isEmpty() && this.myagent.getStatus() != AbstractCommunicationAgent.Status.HUNTING && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
                 System.out.println(this.myAgent.getLocalName() + " - Odeur détectée.");
-                if(this.myagent.getStatus() != AbstractCommunicationAgent.Status.SMELLING){
+                if(!this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.SMELLING)){
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
                     System.out.println(this.myAgent.getLocalName() + " - Passage en mode SMELLING.");
                 }
@@ -186,9 +258,12 @@
                     
                     nextNodeId = this.myagent.getOrderTarget();
                     System.out.println("Je suis " + this.myagent.getLocalName() + " et mon ordre est: " + nextNodeId + ", qui vient de: " + this.myagent.getLeaderId());
-                    if (nextNodeId == null || nextNodeId.isEmpty() || followGolem) {
-                        // Si pas d'ordre, on fonce vers la dernière position connue du golem
+                    if (followGolem) {
                         nextNodeId = this.myagent.getGolemPos();
+                    }
+                    else if(nextNodeId == null || nextNodeId.isEmpty()){
+                        this.myagent.stopCurrentCoalition();
+                        nextNodeId = findExploNextNode(myPosition.getLocationId(), neighbors);
                     }
                     break;
 
@@ -202,7 +277,7 @@
                     }
                     break;
 
-                case BLOCKING:  break;
+                case BLOCKING:  System.out.println(this.myagent.getLocalName() + " est en train de bloquer :)"); break;
                 default:
                     // Logique d'exploration classique (DFS/ShortestPath)
                     nextNodeId = findExploNextNode(myPosition.getLocationId(), neighbors);
@@ -210,26 +285,33 @@
             }
 
             // 5. Déplacement physique
+            oldPos = myPosition.getLocationId();
             if (nextNodeId != null) {
                 // Si le nœud cible n'est pas adjacent, on calcule le chemin
                 List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), nextNodeId);
                 if (path != null && !path.isEmpty()) {
                     String step = path.getFirst();
                     boolean hasMoved = ((AbstractDedaleAgent) this.myAgent).moveTo(new GsLocation(step));
-
-                    // Gestion des Pings périodiques
-                    if (hasMoved && followGolem) {
-                        golemSamePosTimer = 0;
-                    }
+                    
                     if(!hasMoved)System.out.println(this.myagent.getLocalName() + " est en mode " + this.myagent.getStatus() + "et tente d'aller en: " + nextNodeId);
+                    
+                }
+                else{
+                    // permet de reset le comportement au prochain tick
+                    this.myagent.setOrderTarget(myPosition.getLocationId());
                 }
             }
+            
             // Gestion des pings de proximité (si agents détectés)
             if (!nearbyAgents.isEmpty()) {
                 this.myagent.addBehaviour(new PingBehaviour(this.myagent, nearbyAgents));
-            }else{
-                if(cpt % 3 == 0)this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
             }
+            
+            if(cpt >= 3){
+                this.myagent.addBehaviour(new PingBehaviour(this.myagent, list_agentNames));
+                // pour éviter de dépasser maxint si je fais % 3
+                cpt = 0;
+            } 
             cpt++;
 
 
@@ -267,6 +349,7 @@
             if (neighbors != null && !neighbors.isEmpty()) {
                 return neighbors.get((int) (Math.random() * neighbors.size()));
             }
+
 
             return null;
         }

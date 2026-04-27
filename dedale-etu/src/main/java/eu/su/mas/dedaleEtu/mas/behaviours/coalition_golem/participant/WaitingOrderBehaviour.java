@@ -40,7 +40,7 @@ public class WaitingOrderBehaviour extends SimpleBehaviour {
                     Serializable[] content = (Serializable[]) msg.getContentObject();
                     HashMap<String, String> plan = (HashMap<String, String>) content[0];
                     String order = plan.get(this.agent.getAID().getLocalName());
-                    // Si l'agent n'a pas été pris en compte dans le plan, il suit son parent
+                    // Si l'agent n'a pas été pris en compte dans le plan, il suit le golem
                     if (order == null) {
                         order = this.agent.getGolemPos();
                     }

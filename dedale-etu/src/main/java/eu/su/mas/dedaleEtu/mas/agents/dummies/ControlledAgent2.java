@@ -14,13 +14,6 @@ import jade.core.behaviours.Behaviour;
 public class ControlledAgent2 extends AbstractCommunicationAgent{
     
     private static final long serialVersionUID = 728177281660199801L;
-    private HashMap<String, Long> sentMapsRegistry = new HashMap<>();
-    private HashMap<String, Long> lastConvRegistry = new HashMap<>();
-    private HashMap<String, Long> activeConversations = new HashMap<>();
-    private static final long CONV_TIMEOUT = 5000;
-    private MapRepresentation myMap;
-    private HashMap<String, String> coalition;
-    private String coalitionId;
 
 
     protected void setup(){
@@ -39,6 +32,8 @@ public class ControlledAgent2 extends AbstractCommunicationAgent{
                 System.out.println(this.getLocalName() + " contactera : " + list_agentNames);
             }
         }
+        this.agentList = list_agentNames;
+
 
         List<Behaviour> lb=new ArrayList<Behaviour>();
         lb.add(new ListenerBehaviour(this));
