@@ -179,10 +179,13 @@
                     this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("ui.class","closed");
                 }
             }
-            else{
-                int estimatedSmell = this.myMap.getShortestPath(firstPosSmell, golemNodeFound).size() - 1;
-                this.myagent.setGlobalEstimatedGolemSmell(estimatedSmell);
+            else if(!firstPosSmell.isEmpty()){
+                    List<String> path = this.myMap.getShortestPath(firstPosSmell, golemNodeFound);
+                    int estimatedSmell = (path != null)? path.size() - 1 : 0;
+                    this.myagent.setGlobalEstimatedGolemSmell(estimatedSmell);
+                    this.firstPosSmell = "";
             }
+            
             // PRIORITÉ 1 : On voit un Golem -> On devient LEADER
 
             if (golemNodeFound != null && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
