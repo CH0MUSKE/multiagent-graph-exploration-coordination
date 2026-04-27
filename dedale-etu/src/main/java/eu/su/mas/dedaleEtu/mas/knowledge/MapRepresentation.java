@@ -647,15 +647,38 @@ public class MapRepresentation implements Serializable {
 		return true;
 	}
 
-	// on fait un bfs pour voir s'il y a un golem bloqué dans le rayon estimé
+	public synchronized List<String> getShortestPathIgnoringEntities(String idFrom,String idTo){
+		List<String> shortestPath=new ArrayList<String>();
+
+		Dijkstra dijkstra = new Dijkstra();//number of edge
+		dijkstra.init(g);
+		dijkstra.setSource(g.getNode(idFrom));
+		dijkstra.compute();//compute the distance to all nodes from idFrom
+		List<Node> path=dijkstra.getPath(g.getNode(idTo)).getNodePath(); //the shortest path from idFrom to idTo
+		Iterator<Node> iter=path.iterator();
+		while (iter.hasNext()){
+			shortestPath.add(iter.next().getId());
+		}
+		dijkstra.clear();
+		if (shortestPath.isEmpty()) {//The openNode is not currently reachable
+			return null;
+		}else {
+			shortestPath.remove(0);//remove the current position
+		}
+		return shortestPath;
+	}
+
+
+
 	public synchronized List<String> filterExplainedSmells(Map<String, Integer> observedStenches, int radius) {
 		List<String> suspiciousSmells = new ArrayList<>();
 
 		// 1. On récupère TOUS les Golems bloqués sur la carte une seule fois
 		List<String> blockedGolems = this.g.nodes()
-				.filter(n -> MapAttribute.blocked.toString().equals(n.getAttribute("ui.class")) && ((String)n.getAttribute("entityId")).isEmpty())
+				.filter(n -> MapAttribute.blocked.toString().equals(n.getAttribute("ui.class")))
 				.map(Node::getId)
 				.collect(Collectors.toList());
+		System.out.println("");
 
 		// 2. Pour chaque nœud où on a détecté une odeur
 		for (Map.Entry<String, Integer> entry : observedStenches.entrySet()) {
@@ -665,8 +688,7 @@ public class MapRepresentation implements Serializable {
 
 			// 3. On regarde combien de Golems bloqués sont dans le rayon de CE nœud précis
 			for (String blockedPos : blockedGolems) {
-				// On utilise une version légère de distance (BFS ou Dijkstra)
-				List<String> path = getShortestPath(smellNodeId, blockedPos);
+				List<String> path = getShortestPathIgnoringEntities(smellNodeId, blockedPos);
 				if (path != null && path.size() <= radius) {
 					explainedByBlocked++;
 				}

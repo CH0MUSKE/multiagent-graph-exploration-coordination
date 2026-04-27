@@ -67,6 +67,7 @@
             List<String> nearbyAgents = new ArrayList<>();
             List<String> neighbors = new ArrayList<>();
             HashMap<String, Integer> smellValueNodes = new HashMap<>();
+            List<String> golemNodes = new ArrayList<>();
 
 
             // 2. Traitement des observations et mise à jour de la carte
@@ -89,7 +90,7 @@
                             entityName = o.getRight();
                             if (entityName.toLowerCase().contains("wumpus")) {
                                 type = NodeInfo.Entity.GOLEM;
-                                golemNodeFound = nodeId; // On a une cible visuelle !
+                                golemNodes.add(nodeId); // On a une cible visuelle !
                             } else {
                                 type = NodeInfo.Entity.AGENT;
                                 if (list_agentNames.contains(entityName) && !this.myagent.hasAlreadySentMap(entityName)) {
@@ -106,12 +107,23 @@
                     neighbors.add(nodeId);
                 }
 
+
+                org.graphstream.graph.Node n = this.myMap.getG().getNode(nodeId);
+                MapRepresentation.MapAttribute currentAttr = null;
+                if(!golemNodes.isEmpty()){
+                    for(String nodeGolem: golemNodes){
+                        if(this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING) && this.myMap.getG().getNode(nodeGolem).getAttribute("ui.class").equals(MapRepresentation.MapAttribute.blocked)){
+                            golemNodeFound = nodeGolem;
+                            break;
+                        }
+                    }
+                    if(golemNodeFound == null) golemNodeFound = golemNodes.getFirst();
+                }
+
                 // Mise à jour de la Map
                 // On récupère le statut actuel dans la map AVANT de faire quoi que ce soit
                 // 1. On cherche d'abord si le noeud existe dans le graphe
-                org.graphstream.graph.Node n = this.myMap.getG().getNode(nodeId);
-                MapRepresentation.MapAttribute currentAttr = null;
-
+                
                 if (n != null) {
                     Object classObj = n.getAttribute("ui.class");
                     if (classObj != null) {
@@ -133,9 +145,8 @@
                             MapRepresentation.MapAttribute.open :
                             currentAttr;
                     if(type.equals(NodeInfo.Entity.AGENT) && !attrToSet.equals(MapRepresentation.MapAttribute.blocked)) attrToSet = MapRepresentation.MapAttribute.closed;
-                    if(golemNodeFound != null && this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)){
+                    if(golemNodeFound != null && this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING) && attrToSet.equals(MapRepresentation.MapAttribute.blocked)){
                         this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.EMPTY, "", smellValue);
-                        this.myMap.addEdge(myPosition.getLocationId(), nodeId);
                     }
                     else{
                         this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue);
@@ -180,7 +191,7 @@
                 }
             }
             else if(!firstPosSmell.isEmpty()){
-                    List<String> path = this.myMap.getShortestPath(firstPosSmell, golemNodeFound);
+                    List<String> path = this.myMap.getShortestPathIgnoringEntities(firstPosSmell, golemNodeFound);
                     int estimatedSmell = (path != null)? path.size() - 1 : 0;
                     this.myagent.setGlobalEstimatedGolemSmell(estimatedSmell);
                     this.firstPosSmell = "";
