@@ -20,6 +20,7 @@
 
     import java.io.Serializable;
     import java.util.*;
+    import java.util.stream.Collectors;
 
     public class ExploreCoopBehaviour2 extends SimpleBehaviour{
         private static final long serialVersionUID = 8567774731496787661L;
@@ -112,7 +113,7 @@
                 MapRepresentation.MapAttribute currentAttr = null;
                 if(!golemNodes.isEmpty()){
                     for(String nodeGolem: golemNodes){
-                        if(this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING) && this.myMap.getG().getNode(nodeGolem).getAttribute("ui.class").equals(MapRepresentation.MapAttribute.blocked)){
+                        if(this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING) && (boolean)this.myMap.getG().getNode(nodeGolem).getAttribute("blocked")){
                             golemNodeFound = nodeGolem;
                             break;
                         }
@@ -137,21 +138,33 @@
                     attrToSet = (currentAttr == null || currentAttr.equals(MapRepresentation.MapAttribute.open)) ?
                             MapRepresentation.MapAttribute.closed :
                             currentAttr;
-                    this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.AGENT, this.myagent.getLocalName(), smellValue);
+                    this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.AGENT, this.myagent.getLocalName(), smellValue,-1,false);
                 } else {
                     // Si currentAttr est null, c'est que le noeud est nouveau -> open
                     // Sinon, on garde ce qu'il y avait 
                     attrToSet = (currentAttr == null) ?
                             MapRepresentation.MapAttribute.open :
                             currentAttr;
-                    if(type.equals(NodeInfo.Entity.AGENT) && !attrToSet.equals(MapRepresentation.MapAttribute.blocked)) attrToSet = MapRepresentation.MapAttribute.closed;
-                    if(golemNodeFound != null && this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING) && attrToSet.equals(MapRepresentation.MapAttribute.blocked)){
-                        this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.EMPTY, "", smellValue);
+                    boolean isAgent = type.equals(NodeInfo.Entity.AGENT);
+                    boolean blocked = false;
+                    Node neighborNode = this.myMap.getG().getNode(nodeId);
+
+                    if (neighborNode != null) {
+                        Object bAttr = neighborNode.getAttribute("blocked");
+                        blocked = (bAttr != null && (boolean) bAttr);
+                    }     
+                    boolean blocking = this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING);
+                    if(isAgent) attrToSet = MapRepresentation.MapAttribute.closed;
+                    if(blocked){
+                        if(golemNodeFound != null && blocking) this.myMap.addNode(nodeId, attrToSet, NodeInfo.Entity.GOLEM, "", smellValue,-1,blocked);
+                        else if(type.equals(NodeInfo.Entity.EMPTY)){
+                            this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue,System.currentTimeMillis(), false);
+                        }
                     }
                     else{
-                        this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue);
-                        this.myMap.addEdge(myPosition.getLocationId(), nodeId);
+                        this.myMap.addNode(nodeId, attrToSet, type, entityName, smellValue,-1, blocked);
                     }
+                    this.myMap.addEdge(myPosition.getLocationId(), nodeId);
 
                 }
             }
@@ -185,17 +198,18 @@
                     System.out.println(this.myagent.getLocalName() + " - Le Golem a forcé le passage, reprise de l'explo.");
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.EXPLORING);
                     this.myagent.setOrderTarget("");
-                    Node nodeOldPos = this.myagent.getMyMap().getG().getNode(this.oldPos);
-                    if(nodeOldPos != null)nodeOldPos.setAttribute("ui.class","closed");
-                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("ui.class","closed");
+                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("blocked",false);
+                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("blockedLastUpdate",System.currentTimeMillis());
+
                 }
             }
             else if(!firstPosSmell.isEmpty()){
                     List<String> path = this.myMap.getShortestPathIgnoringEntities(firstPosSmell, golemNodeFound);
-                    int estimatedSmell = (path != null)? path.size() - 1 : 0;
+                    int estimatedSmell = (path != null)? path.size() + 2 : 0;
                     this.myagent.setGlobalEstimatedGolemSmell(estimatedSmell);
                     this.firstPosSmell = "";
             }
+            
             
             // PRIORITÉ 1 : On voit un Golem -> On devient LEADER
 
@@ -224,9 +238,17 @@
                 }
                 // --- END DEBUG ---
                 if(this.myagent.getMyMap().isGolemSurrounded(golemNodeFound)){
-                    this.myagent.getMyMap().getG().getNode(golemNodeFound).setAttribute("ui.class","blocked");
-                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("ui.class","blocked");
+                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("blockedLastUpdate",System.currentTimeMillis());
+                    this.myagent.getMyMap().getG().getNode(golemNodeFound).setAttribute("blockedLastUpdate",System.currentTimeMillis());
+                    this.myagent.getMyMap().getG().getNode(golemNodeFound).setAttribute("blocked",true);
+                    this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).setAttribute("blocked", true);
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.BLOCKING);
+                    this.myagent.setLeaderId("");
+                    System.out.println("golem bloqué");
+                    System.out.println("+++" + golemNodeFound);
+                    System.out.println("*-*- " + this.myagent.getMyMap().getG().getNode(golemNodeFound).getAttribute("blocked"));
+                    System.out.println("*-*- " + this.myagent.getMyMap().getG().getNode(myPosition.getLocationId()).getAttribute("blocked"));
+
                 }
                 else{
                     long elaspedTimeSinceCoalition = System.currentTimeMillis() - this.lastCoalitionTimestamp;
@@ -255,7 +277,7 @@
                 this.myagent.setGolemPos(golemNodeFound);
             }
             // PRIORITÉ 2 : On sent quelque chose (et on ne chasse pas déjà)
-            else if (!smellNodes.isEmpty() && this.myagent.getStatus() != AbstractCommunicationAgent.Status.HUNTING && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
+            else if (!smellNodes.isEmpty() && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.HUNTING) && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
                 System.out.println(this.myAgent.getLocalName() + " - Odeur détectée.");
                 if(!this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.SMELLING)){
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
@@ -301,6 +323,7 @@
             // 5. Déplacement physique
             oldPos = myPosition.getLocationId();
             if (nextNodeId != null) {
+                System.out.println(this.myagent.getLocalName() + " -> cible principale: " + nextNodeId);
                 // Si le nœud cible n'est pas adjacent, on calcule le chemin
                 List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), nextNodeId);
                 if (path != null && !path.isEmpty()) {
@@ -327,6 +350,23 @@
                 cpt = 0;
             } 
             cpt++;
+            // --- À placer tout à la fin de la méthode action(), juste avant l'accolade de fermeture ---
+            System.out.println("bloc de débuggage du blocked");
+            List<String> blockedPositions = this.myMap.getG().nodes()
+                    .filter(n -> {
+                        // On vérifie si l'attribut existe et s'il est vrai de manière sécurisée
+                        Object b = n.getAttribute("blocked");
+                        Object type = n.getAttribute("entityType");
+
+                        // Boolean.TRUE.equals(b) est génial : si b est null ou false, ça renvoie false. Pas de crash !
+                        return Boolean.TRUE.equals(b);
+                    })
+                    .map(org.graphstream.graph.Node::getId)
+                    .collect(Collectors.toList());
+
+            for(String blockedPos : blockedPositions){
+                System.out.println(">>> [CONFIRMATION] " + this.myagent.getLocalName() + " voit officiellement que " + blockedPos + " est bloqué dans son graphe.");
+            }
 
 
             // Condition de fin d'exploration
@@ -345,6 +385,7 @@
                 if (path != null && !path.isEmpty()) {
                     // getShortestPath retire déjà la position actuelle (index 0)
                     // Donc le premier élément de la liste est le voisin direct où aller
+                    System.out.println(this.myagent.getLocalName() + ": se dirige vers l'open node la plus proche");
                     return path.getFirst();
                 }
             }
@@ -361,6 +402,7 @@
             // 3. DERNIER RECOURS : Un voisin au hasard
             // Pour éviter que l'agent ne reste figé si tout est exploré et frais
             if (neighbors != null && !neighbors.isEmpty()) {
+                System.out.println(this.myagent.getLocalName() + ": fait un move random");
                 return neighbors.get((int) (Math.random() * neighbors.size()));
             }
 

@@ -151,7 +151,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
         
         Node golem_node = this.myagent.getMyMap().getG().getNode(golem_pos);
         
-        if(golem_node == null || golem_node.getAttribute("ui.class").equals(MapRepresentation.MapAttribute.blocked)) return;
+        if(golem_node == null ||(boolean) golem_node.getAttribute("blocked")) return;
 
         boolean transitionAuthorized = false;
 

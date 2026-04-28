@@ -87,7 +87,7 @@ public class ExploCoopBehaviour extends SimpleBehaviour {
 			}
 
 			//1) remove the current node from openlist and add it to closedNodes.
-			this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed, NodeInfo.Entity.EMPTY, "", 0);
+			this.myMap.addNode(myPosition.getLocationId(), MapAttribute.closed, NodeInfo.Entity.EMPTY, "", 0, -1, false);
 
 			//2) get the surrounding nodes and, if not in closedNodes, add them to open nodes.
 			String nextNodeId=null;

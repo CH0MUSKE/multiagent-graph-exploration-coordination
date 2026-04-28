@@ -14,13 +14,17 @@ public class NodeInfo implements Serializable {
     public Entity entityType;
     public String entityId;
     public int smell = 0;
+    public long blockedLastUpdate;
+    public boolean blocked;
     
     
-    public NodeInfo(MapRepresentation.MapAttribute statut, long lastUpdate, Entity entityType, String entityId, int smell){
+    public NodeInfo(MapRepresentation.MapAttribute statut, long lastUpdate, Entity entityType, String entityId, int smell, long blockedLastUpdate, boolean blocked){
         this.statut = statut;
         this.lastUpdate = lastUpdate;
         this.entityType = entityType;
         this.entityId = entityId;
         this.smell = smell;
+        this.blockedLastUpdate = blockedLastUpdate;
+        this.blocked = blocked;
     }
 }

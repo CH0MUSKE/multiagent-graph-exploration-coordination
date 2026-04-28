@@ -45,7 +45,7 @@ public class MapRepresentation implements Serializable {
 	 */
 
 	public enum MapAttribute {	
-		agent,open,closed, blocked;
+		agent,open,closed
 	}
 
 	private static final long serialVersionUID = -1333959882640838272L;
@@ -112,7 +112,7 @@ public class MapRepresentation implements Serializable {
 	 * @param id unique identifier of the node
 	 * @param mapAttribute attribute to process
 	 */
-	public synchronized void addNode(String id, MapAttribute mapAttribute, NodeInfo.Entity entityType, String entityId, int smell){
+	public synchronized void addNode(String id, MapAttribute mapAttribute, NodeInfo.Entity entityType, String entityId, int smell, long blockedLastUpdate, boolean blocked ){
 		Node n;
 		if (this.g.getNode(id)==null){
 			n=this.g.addNode(id);
@@ -125,7 +125,6 @@ public class MapRepresentation implements Serializable {
 		if (entityId != null) {
 			changeEntityLocation = updateEntityLocation(entityId, id, now);
 		}
-		n.clearAttributes();
 		if(changeEntityLocation){
 			n.setAttribute("entityType", entityType.toString());
 			n.setAttribute("entityId", entityId);
@@ -139,6 +138,16 @@ public class MapRepresentation implements Serializable {
 		n.setAttribute("lastUpdate", now);
 
 		n.setAttribute("smell",smell);
+		if(blockedLastUpdate < 0){
+			Object oldTS = n.getAttribute("blockedLastUpdate");
+			Object oldB = n.getAttribute("blocked");
+			n.setAttribute("blockedLastUpdate", (oldTS != null) ? (long)oldTS : 0L);
+			n.setAttribute("blocked", (oldB != null) && (boolean)oldB);
+		}
+		else{
+			n.setAttribute("blockedLastUpdate", blockedLastUpdate);
+			n.setAttribute("blocked", blocked);
+		}
 	}
 
 	public synchronized boolean updateEntityLocation(String entityName, String newNodeId, long lastUpdate) {
@@ -185,7 +194,8 @@ public class MapRepresentation implements Serializable {
 				.filter(n -> {
 					// On ne s'intéresse qu'aux nœuds déjà visités (closed)
 					String status = (String) n.getAttribute("ui.class");
-					if (!MapAttribute.closed.toString().equals(status)) return false;
+					boolean blocked = (boolean)n.getAttribute("blocked"); 
+					if (!MapAttribute.closed.toString().equals(status) || blocked) return false;
 
 					// On vérifie l'âge de la dernière mise à jour
 					Object lastUpdateObj = n.getAttribute("lastUpdate");
@@ -231,7 +241,7 @@ public class MapRepresentation implements Serializable {
 	 */
 	public synchronized boolean addNewNode(String id) {
 		if (this.g.getNode(id)==null){
-			addNode(id,MapAttribute.open, NodeInfo.Entity.EMPTY, "",0);
+			addNode(id,MapAttribute.open, NodeInfo.Entity.EMPTY, "",0,0,false);
 			return true;
 		}
 		return false;
@@ -264,7 +274,7 @@ public class MapRepresentation implements Serializable {
 		long C = 5000; 
 
 		// 1. Récupération des attributs de base
-		String statusStr = (String) n.getAttribute("ui.class");
+		boolean blocked = (boolean) n.getAttribute("blocked");
 		Object entityTypeObj = n.getAttribute("entityType");
 		String entityTypeStr = (entityTypeObj != null) ? entityTypeObj.toString() : "";
 		Object lastUpdateObj = n.getAttribute("lastUpdate");
@@ -272,7 +282,7 @@ public class MapRepresentation implements Serializable {
 
 		// 2. CAS CRITIQUE : Mur de capture (Blocked)
 		// Même si c'est vieux, on reste prudent, mais on pourrait aussi y mettre un timeout (?)
-		if (MapAttribute.blocked.toString().equals(statusStr)) {
+		if (blocked) {
 			return 1000.0;
 		}
 
@@ -359,7 +369,8 @@ public class MapRepresentation implements Serializable {
 
 	public synchronized List<String> getOpenNodes(){
 		return this.g.nodes()
-				.filter(x ->x .getAttribute("ui.class")==MapAttribute.open.toString()) 
+				.filter(x -> MapAttribute.open.toString().equals(x.getAttribute("ui.class"))
+						&& !Boolean.TRUE.equals(x.getAttribute("blocked")))
 				.map(Node::getId)
 				.collect(Collectors.toList());
 	}
@@ -389,7 +400,9 @@ public class MapRepresentation implements Serializable {
 			NodeInfo.Entity entity = NodeInfo.Entity.valueOf((String)n.getAttribute("entityType"));
 			String entityId = (String)n.getAttribute("entityId");
 			int smell = (int)n.getAttribute("smell");
-			sg.addNode(n.getId(), new NodeInfo(attr, ts, entity, entityId, smell));
+			long blockedLastUpdate = (long)n.getAttribute("blockedLastUpdate");
+			boolean blocked = (boolean)n.getAttribute("blocked");
+			sg.addNode(n.getId(), new NodeInfo(attr, ts, entity, entityId, smell, blockedLastUpdate, blocked));
 		}
 		Iterator<Edge> iterE=this.g.edges().iterator();
 		while (iterE.hasNext()){
@@ -423,6 +436,9 @@ public class MapRepresentation implements Serializable {
 			this.g.addNode(n.getNodeId()).setAttribute("entityType", n.getNodeContent().entityType.toString());
 			this.g.addNode(n.getNodeId()).setAttribute("entityId", n.getNodeContent().entityId);
 			this.g.addNode(n.getNodeId()).setAttribute("smell", n.getNodeContent().smell);
+			this.g.addNode(n.getNodeId()).setAttribute("blockedLastUpdate", n.getNodeContent().blockedLastUpdate);
+			this.g.addNode(n.getNodeId()).setAttribute("blocked", n.getNodeContent().blocked);
+			
 
 
 			for(String s:this.sg.getEdges(n.getNodeId())){
@@ -515,19 +531,21 @@ public class MapRepresentation implements Serializable {
 				newnode.setAttribute("entityType", n.getNodeContent().entityType.toString());
 				newnode.setAttribute("entityId", n.getNodeContent().entityId);
 				newnode.setAttribute("smell", n.getNodeContent().smell);
+				newnode.setAttribute("blockedLastUpdate", n.getNodeContent().blockedLastUpdate);
+				newnode.setAttribute("blocked", n.getNodeContent().blocked);
 
 			}else{
 				newnode=this.g.getNode(n.getNodeId());
 				//3 check its attribute. If it is below the one received, update it.
 				long curr_time = (long)newnode.getAttribute("lastUpdate");
+				long curr_blockedTime = (long)newnode.getAttribute("blockedLastUpdate");
 				NodeInfo infoRecue = n.getNodeContent();
 				
 				long new_time = infoRecue.lastUpdate;
+				long new_blockedTime = infoRecue.blockedLastUpdate;
 				String currentStatus = (String) newnode.getAttribute("ui.class");
 				boolean tryingToReopen = (currentStatus.equals(MapAttribute.closed.toString())
-						&& infoRecue.statut.equals(MapAttribute.open) )
-						|| (currentStatus.equals(MapAttribute.blocked.toString()) 
-				&& (infoRecue.statut.equals(MapAttribute.closed) || infoRecue.statut.equals(MapAttribute.open)));
+						&& infoRecue.statut.equals(MapAttribute.open));
 				
 				System.out.println("merge de " + agent + " en cours -> new_time = " + new_time + " | curr_time = " + curr_time + " | node concerné: " + n.getNodeId());
 				if(entityPositions.get(infoRecue.entityId) != null && !entityPositions.get(infoRecue.entityId).isEmpty() ){
@@ -555,6 +573,10 @@ public class MapRepresentation implements Serializable {
 				
 
 				if(!tryingToReopen)	newnode.setAttribute("ui.class", infoRecue.statut.toString());
+				if(new_blockedTime > curr_blockedTime){
+					newnode.setAttribute("blocked", infoRecue.blocked);
+					newnode.setAttribute("blockedLastUpdate", infoRecue.blockedLastUpdate);
+				}
 				
 			}
 		}
@@ -574,7 +596,8 @@ public class MapRepresentation implements Serializable {
 	 */
 	public boolean hasOpenNode() {
 		return (this.g.nodes()
-				.filter(n -> n.getAttribute("ui.class")==MapAttribute.open.toString())
+				.filter(n -> n.getAttribute("ui.class").equals(MapAttribute.open.toString())
+				&& !Boolean.TRUE.equals(n.getAttribute("blocked")))
 				.findAny()).isPresent();
 	}
 
@@ -594,10 +617,12 @@ public class MapRepresentation implements Serializable {
 			NodeInfo.Entity entityType = NodeInfo.Entity.valueOf((String)n.getAttribute("entityType"));
 			String entityId = (String)n.getAttribute("entityId");
 			int smell = (int)n.getAttribute("smell");
+			long blockedLastUpdate = (long)n.getAttribute("blockedLastUpdate");
+			boolean blocked = (boolean)n.getAttribute("blocked");
 
 			if (nodeTs >= threshold) {
 				MapAttribute attr = MapAttribute.valueOf((String) n.getAttribute("ui.class"));
-				subGraph.addNode(n.getId(), new NodeInfo(attr, nodeTs, entityType, entityId, smell));
+				subGraph.addNode(n.getId(), new NodeInfo(attr, nodeTs, entityType, entityId, smell, blockedLastUpdate, blocked));
 				addedNodes.add(n.getId());
 			}
 		});
@@ -614,11 +639,11 @@ public class MapRepresentation implements Serializable {
 				// (sinon le SerializableSimpleGraph risque de râler)
 				if (subGraph.getNode(idSrc) == null) {
 					Node n = e.getSourceNode();
-					subGraph.addNode(idSrc, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),NodeInfo.Entity.valueOf((String)n.getAttribute("entityType")),(String)n.getAttribute("entityId"), (int)n.getAttribute("smell") ));
+					subGraph.addNode(idSrc, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),NodeInfo.Entity.valueOf((String)n.getAttribute("entityType")),(String)n.getAttribute("entityId"), (int)n.getAttribute("smell"), (long)n.getAttribute("blockedLastUpdate"), (boolean)n.getAttribute("blocked") ));
 				}
 				if (subGraph.getNode(idDst) == null) {
 					Node n = e.getTargetNode();
-					subGraph.addNode(idDst, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),NodeInfo.Entity.valueOf((String)n.getAttribute("entityType")), (String)n.getAttribute("entityId"), (int)n.getAttribute("smell") ));
+					subGraph.addNode(idDst, new NodeInfo(MapAttribute.valueOf((String)n.getAttribute("ui.class")), (long)n.getAttribute("lastUpdate"),NodeInfo.Entity.valueOf((String)n.getAttribute("entityType")), (String)n.getAttribute("entityId"), (int)n.getAttribute("smell"), (long)n.getAttribute("blockedLastUpdate"), (boolean)n.getAttribute("blocked") ));
 				}
 
 				subGraph.addEdge(e.getId(), idSrc, idDst);
@@ -629,8 +654,6 @@ public class MapRepresentation implements Serializable {
 	}
 
 	public synchronized boolean isGolemSurrounded(String golemPos) {
-		List<String> openNodes = getOpenNodes();
-		if(openNodes.contains(golemPos)) return false;
 		org.graphstream.graph.Node node = this.g.getNode(golemPos);
 		if (node == null) return false;
 
@@ -640,7 +663,8 @@ public class MapRepresentation implements Serializable {
 
 		for (org.graphstream.graph.Node neighbor : neighbors) {
 			String entityType = (String) neighbor.getAttribute("entityType");
-			if (!"AGENT".equals(entityType)) {
+			boolean isBlocked = (boolean) neighbor.getAttribute("blocked");
+			if (!(NodeInfo.Entity.AGENT.toString().equals(entityType) || isBlocked)) {
 				return false;
 			}
 		}
@@ -675,10 +699,9 @@ public class MapRepresentation implements Serializable {
 
 		// 1. On récupère TOUS les Golems bloqués sur la carte une seule fois
 		List<String> blockedGolems = this.g.nodes()
-				.filter(n -> MapAttribute.blocked.toString().equals(n.getAttribute("ui.class")))
+				.filter(n ->(boolean) n.getAttribute("blocked") && n.getAttribute("entityType").equals(NodeInfo.Entity.GOLEM.toString()))
 				.map(Node::getId)
 				.collect(Collectors.toList());
-		System.out.println("");
 
 		// 2. Pour chaque nœud où on a détecté une odeur
 		for (Map.Entry<String, Integer> entry : observedStenches.entrySet()) {
@@ -692,12 +715,14 @@ public class MapRepresentation implements Serializable {
 				if (path != null && path.size() <= radius) {
 					explainedByBlocked++;
 				}
+				System.out.println("blocked golem pos: " + blockedPos);
 			}
 
 			// 4. Si le nombre d'odeurs senties est > au nombre de golems bloqués à proximité
 			// Alors il y a au moins un Golem libre !
 			if (nbStenchesObserved > explainedByBlocked) {
 				suspiciousSmells.add(smellNodeId);
+				System.out.println("Node non ignoré: " + smellNodeId);
 			}
 		}
 
