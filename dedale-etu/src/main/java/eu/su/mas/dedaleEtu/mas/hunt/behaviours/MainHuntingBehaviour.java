@@ -252,7 +252,7 @@
                         // On génère un ID de conversation unique
                         String cid = this.myagent.getLocalName() + " Coalition_" + System.currentTimeMillis();
                         // On lance le comportement de Leader
-                        System.out.println(this.myAgent.getLocalName() + " - Lancement coalition...");
+                        //System.out.println(this.myAgent.getLocalName() + " - Lancement coalition...");
                         this.myagent.stopCurrentCoalition();
                         this.lastCoalitionTimestamp = System.currentTimeMillis();
                         this.myagent.startCoalition(
@@ -272,10 +272,10 @@
             }
             // PRIORITÉ 2 : On sent quelque chose (et on ne chasse pas déjà)
             else if (!smellNodes.isEmpty() && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.HUNTING) && !this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.BLOCKING)) {
-                System.out.println(this.myAgent.getLocalName() + " - Odeur détectée.");
+                //System.out.println(this.myAgent.getLocalName() + " - Odeur détectée.");
                 if(!this.myagent.getStatus().equals(AbstractCommunicationAgent.Status.SMELLING)){
                     this.myagent.setStatus(AbstractCommunicationAgent.Status.SMELLING);
-                    System.out.println(this.myAgent.getLocalName() + " - Passage en mode SMELLING.");
+                    //System.out.println(this.myAgent.getLocalName() + " - Passage en mode SMELLING.");
                 }
                 String smell_conv_id = "SMELL_" + this.myagent.getLocalName() + "_" + System.currentTimeMillis();
                 this.myagent.addBehaviour(new SendMsgBehaviour(myagent, smell_conv_id, (Serializable) smellNodes, "SMELL", this.myagent.agentList));
@@ -287,7 +287,7 @@
                     // En mode chasse, on suit l'ordre du Leader (ou notre propre cible si on est leader)
                     
                     nextNodeId = this.myagent.getOrderTarget();
-                    System.out.println("Je suis " + this.myagent.getLocalName() + " et mon ordre est: " + nextNodeId + ", qui vient de: " + this.myagent.getLeaderId());
+                    //System.out.println("Je suis " + this.myagent.getLocalName() + " et mon ordre est: " + nextNodeId + ", qui vient de: " + this.myagent.getLeaderId());
                     if (followGolem) {
                         nextNodeId = this.myagent.getGolemPos();
                     }
@@ -317,7 +317,7 @@
             // 5. Déplacement physique
             oldPos = myPosition.getLocationId();
             if (nextNodeId != null) {
-                System.out.println(this.myagent.getLocalName() + " -> cible principale: " + nextNodeId);
+                //System.out.println(this.myagent.getLocalName() + " -> cible principale: " + nextNodeId);
                 // Si le nœud cible n'est pas adjacent, on calcule le chemin
                 List<String> path = this.myMap.getShortestPath(myPosition.getLocationId(), nextNodeId);
                 if (path != null && !path.isEmpty()) {
@@ -344,8 +344,7 @@
                 cpt = 0;
             } 
             cpt++;
-            // --- À placer tout à la fin de la méthode action(), juste avant l'accolade de fermeture ---
-            System.out.println("bloc de débuggage du blocked");
+            /*System.out.println("bloc de débuggage du blocked");
             List<String> blockedPositions = this.myMap.getG().nodes()
                     .filter(n -> {
                         // On vérifie si l'attribut existe et s'il est vrai de manière sécurisée
@@ -360,16 +359,11 @@
 
             for(String blockedPos : blockedPositions){
                 System.out.println(">>> [CONFIRMATION] " + this.myagent.getLocalName() + " voit officiellement que " + blockedPos + " est bloqué dans son graphe.");
-            }
-
-
-            // Condition de fin d'exploration
-            /*if (!this.myMap.hasOpenNode() && this.myagent.getStatus() == AbstractCommunicationAgent.Status.EXPLORING) {
-                finished = true;
             }*/
+
+            
         }
 
-        // Helper pour l'exploration
         private String findExploNextNode(String currentPos, List<String> neighbors) {
             String nextNodeId = null;
 

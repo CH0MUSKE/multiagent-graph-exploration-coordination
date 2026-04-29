@@ -13,13 +13,10 @@ public abstract class AbstractCommunicationAgent extends AbstractDedaleAgent{
         HUNTING, EXPLORING, SMELLING, BLOCKING
     }
     protected HashMap<String, Long> sentMapsRegistry = new HashMap<>();
-    //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected HashMap<String, Long> lastConvRegistry = new HashMap<>();
-    //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected HashMap<String, Long> activeConversations = new HashMap<>();
     protected HashMap<String, String> coalition = new HashMap<>();
     protected String coalitionId = "";
-    //Pour l'échange de map seulement. TODO: CHANGER LE NOM
     protected static final long CONV_TIMEOUT = 5000;
     protected MapRepresentation myMap;
     protected String golemPos = "";

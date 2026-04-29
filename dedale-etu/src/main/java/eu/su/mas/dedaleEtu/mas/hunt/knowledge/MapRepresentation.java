@@ -176,7 +176,7 @@ public class MapRepresentation implements Serializable {
 				String agentWhoWasHere = (String) n.getAttribute("entityId");
 				if (agentWhoWasHere != null && !agentWhoWasHere.isEmpty()) {
 					entityPositions.remove(agentWhoWasHere);
-					System.out.println("Nettoyage : " + agentWhoWasHere + " n'est plus sur " + newNodeId);
+					//System.out.println("Nettoyage : " + agentWhoWasHere + " n'est plus sur " + newNodeId);
 				}
 			}
 			return true;
@@ -543,9 +543,9 @@ public class MapRepresentation implements Serializable {
 				boolean tryingToReopen = (currentStatus.equals(MapAttribute.closed.toString())
 						&& infoRecue.statut.equals(MapAttribute.open));
 				
-				System.out.println("merge de " + agent + " en cours -> new_time = " + new_time + " | curr_time = " + curr_time + " | node concerné: " + n.getNodeId());
+				//System.out.println("merge de " + agent + " en cours -> new_time = " + new_time + " | curr_time = " + curr_time + " | node concerné: " + n.getNodeId());
 				if(entityPositions.get(infoRecue.entityId) != null && !entityPositions.get(infoRecue.entityId).isEmpty() ){
-					System.out.println(agent  + " old position of: " + infoRecue.entityId + " -> " + "( " + this.entityPositions.get(infoRecue.entityId) + ", " + this.g.getNode(entityPositions.get(infoRecue.entityId)).getAttribute("lastUpdate")+ " )");
+					//System.out.println(agent  + " old position of: " + infoRecue.entityId + " -> " + "( " + this.entityPositions.get(infoRecue.entityId) + ", " + this.g.getNode(entityPositions.get(infoRecue.entityId)).getAttribute("lastUpdate")+ " )");
 				}
 				
 
@@ -565,7 +565,7 @@ public class MapRepresentation implements Serializable {
 					}
 					newnode.setAttribute("smell", infoRecue.smell);
 				}
-				System.out.println(agent  + " new position of: " + infoRecue.entityId + " -> " + this.entityPositions.get(infoRecue.entityId));
+				//System.out.println(agent  + " new position of: " + infoRecue.entityId + " -> " + this.entityPositions.get(infoRecue.entityId));
 				
 
 				if(!tryingToReopen)	newnode.setAttribute("ui.class", infoRecue.statut.toString());
@@ -583,7 +583,7 @@ public class MapRepresentation implements Serializable {
 				addEdge(n.getNodeId(),s);
 			}
 		}
-		System.out.println("Merge done");
+		//System.out.println("Merge done");
 	}
 
 	/**
@@ -711,14 +711,14 @@ public class MapRepresentation implements Serializable {
 				if (path != null && path.size() <= radius) {
 					explainedByBlocked++;
 				}
-				System.out.println("blocked golem pos: " + blockedPos);
+				//System.out.println("blocked golem pos: " + blockedPos);
 			}
 
 			// 4. Si le nombre d'odeurs senties est > au nombre de golems bloqués à proximité
 			// Alors il y a au moins un Golem libre !
 			if (nbStenchesObserved > explainedByBlocked) {
 				suspiciousSmells.add(smellNodeId);
-				System.out.println("Node non ignoré: " + smellNodeId);
+				//System.out.println("Node non ignoré: " + smellNodeId);
 			}
 		}
 
@@ -780,7 +780,7 @@ public class MapRepresentation implements Serializable {
 	
 	// Extremement lourd en calcul, trouver autre chose si c'est trop lent
 	public HashMap<String, String> chokePointAllocation(HashMap<String, String> agentPos, String selectedChokePoint, String currentPos) {
-		System.out.println("allocation en cours");
+		//System.out.println("allocation en cours");
 		Node n = this.g.getNode(selectedChokePoint);
 		List<String> availableSlots = n.neighborNodes().map(Node::getId).collect(Collectors.toList());
 		availableSlots.remove(currentPos);
@@ -807,7 +807,7 @@ public class MapRepresentation implements Serializable {
 				assignments.put(c.agentName, c.slotId);
 				assignedAgents.add(c.agentName);
 				occupiedSlots.add(c.slotId);
-				System.out.println("agent_name: " + c.agentName + " | slot: " + c.slotId);
+				//System.out.println("agent_name: " + c.agentName + " | slot: " + c.slotId);
 			}
 		}
 		return assignments;

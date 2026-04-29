@@ -58,24 +58,24 @@ public class ListenerBehaviour extends CyclicBehaviour {
     }
     
     private void pongHandler(ACLMessage msg){
-        System.out.println(this.myagent.getLocalName() +  ": PONG RECU ");
+        //System.out.println(this.myagent.getLocalName() +  ": PONG RECU ");
         String conv_id = msg.getConversationId();
         String sender_id = msg.getSender().getLocalName();
         Long currtime = System.currentTimeMillis();
         if(!this.myagent.checkValidId(conv_id)){
-            System.out.println(this.myagent.getLocalName() + ": convId invalide | " + conv_id);
+            //System.out.println(this.myagent.getLocalName() + ": convId invalide | " + conv_id);
             return;
         }
         if(this.myagent.hasAlreadySentMap(sender_id)){
-            System.out.println(this.myagent.getLocalName() + ": map déjà envoyé " + conv_id);
+            //System.out.println(this.myagent.getLocalName() + ": map déjà envoyé " + conv_id);
             return;
         }
-        System.out.println(this.myagent.getLocalName() + ": Calcul du subgraph...");
+        //System.out.println(this.myagent.getLocalName() + ": Calcul du subgraph...");
         Long lastConv = this.myagent.getLastConvRegistry(sender_id);
         SerializableSimpleGraph sg = this.myagent.getMyMap().createSubGraph(lastConv);
         this.myAgent.addBehaviour(new SendMsgBehaviour((AbstractDedaleAgent)myAgent, conv_id, sg, "SHARE-MAP", List.of(sender_id)));
         this.myagent.markMapAsSent(sender_id, currtime);
-        System.out.println(this.myAgent.getLocalName() + " -> Envoi du delta à " + sender_id);
+        //System.out.println(this.myAgent.getLocalName() + " -> Envoi du delta à " + sender_id);
     }
     
     private void ackHandler(ACLMessage msg){
@@ -88,7 +88,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
         }
         if (sentMapDate != null) {
             this.myagent.setLastConvRegistry(sender_id, sentMapDate);
-            System.out.println("Succès : Échange avec " + sender_id + " validé.");
+            //System.out.println("Succès : Échange avec " + sender_id + " validé.");
         } else {
             // Si c'est null, c'est soit un doublon, soit un message orphelin
             System.out.println("ACK ignoré (déjà traité ou expiré).");
@@ -101,18 +101,16 @@ public class ListenerBehaviour extends CyclicBehaviour {
 
         SerializableSimpleGraph<String, NodeInfo> sgreceived=null;
         try {
-            System.out.println("aza");
             sgreceived = (SerializableSimpleGraph<String, NodeInfo>)msg.getContentObject();
         } catch (UnreadableException e) {
-            System.out.println("pppo");
             e.printStackTrace();
         }
         if (sgreceived != null) {
             this.myagent.getMyMap().mergeMap( this.myagent.getLocalName(),sgreceived);
-            System.out.println("merged !");
+            //System.out.println("merged !");
             this.myagent.addBehaviour(new SendMsgBehaviour(this.myagent, conv_id, "", "ACK",List.of(sender_id)));
         } else {
-            System.out.println("Erreur : Graphe reçu vide ou corrompu.");
+            //System.out.println("Erreur : Graphe reçu vide ou corrompu.");
         }
         
     }
@@ -133,7 +131,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
             e.printStackTrace();
         }
         if (content == null) {
-            System.out.println("Erreur : message flood corrompu");
+            //System.out.println("Erreur : message flood corrompu");
             return;
         }
         String leader_id = content[0];
@@ -157,7 +155,7 @@ public class ListenerBehaviour extends CyclicBehaviour {
             // Si on explore ou qu'on sent le golem, on accepte d'entrer en coalition
             default -> transitionAuthorized = true;
         }
-        System.out.println("Je suis: " + this.myagent.getLocalName() + " et mon leader est: " + leader_id);
+        //System.out.println("Je suis: " + this.myagent.getLocalName() + " et mon leader est: " + leader_id);
 
 
         if (transitionAuthorized) {

@@ -26,7 +26,7 @@ public class GolemHunterAgent extends AbstractCommunicationAgent {
 
             if (userParams != null && !userParams.isEmpty()) {
                 list_agentNames.addAll(userParams);
-                System.out.println(this.getLocalName() + " contactera : " + list_agentNames);
+                //System.out.println(this.getLocalName() + " contactera : " + list_agentNames);
             }
         }
         this.agentList = list_agentNames;
@@ -52,7 +52,7 @@ public class GolemHunterAgent extends AbstractCommunicationAgent {
 
         addBehaviour(new StartMyBehaviours(this,lb));
 
-        System.out.println("the  agent "+this.getLocalName()+ " is started");
+        //System.out.println("the  agent "+this.getLocalName()+ " is started");
 
     }
     

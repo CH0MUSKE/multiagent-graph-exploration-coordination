@@ -26,12 +26,12 @@ public class SendOrdersBehaviour extends OneShotBehaviour {
         content[1] = curPos;
 
         if (plan == null) {
-            System.err.println(this.myAgent.getLocalName() + " - Erreur : Aucun plan trouvé dans le DataStore ! + ( " + this.agent.getCoalitionId() +" )");
+            //System.err.println(this.myAgent.getLocalName() + " - Erreur : Aucun plan trouvé dans le DataStore ! + ( " + this.agent.getCoalitionId() +" )");
             return;
         }
         List<String> recipients = agent.getChildren();
         if (recipients.isEmpty()) {
-            System.out.println(this.myAgent.getLocalName() + " - Aucun enfant à qui envoyer l'ordre.");
+            //System.out.println(this.myAgent.getLocalName() + " - Aucun enfant à qui envoyer l'ordre.");
             return;
         }
 

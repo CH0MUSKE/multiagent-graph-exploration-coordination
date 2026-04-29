@@ -31,7 +31,7 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
         long elapsed = System.currentTimeMillis() - startTime;
         if (elapsed >= timeout) {
             this.finished = true;
-            System.out.println("timeout reached");
+            //System.out.println("timeout reached");
             return;
         }
         MessageTemplate template = MessageFactory.buildMultiProtocolTemplate(ACLMessage.INFORM, List.of("ECHO_GOLEM"));
@@ -50,7 +50,7 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
                         }
                     }
                 } catch (UnreadableException e) {
-                    System.err.println("Erreur de désérialisation : " + e.getMessage());
+                    //System.err.println("Erreur de désérialisation : " + e.getMessage());
                 }
                 this.agent.getChildren().add(msg.getSender().getLocalName());
             }
@@ -72,10 +72,10 @@ public class ReceiveEchoBehaviour extends SimpleBehaviour {
     @Override
     public int onEnd() {
         if (this.agent.getCoalitionSize() > 0) {
-            System.out.println("Succès ! (Sous) coalition formée avec " + this.agent.getCoalitionSize() + " membres. ( " + this.agent.getCoalitionId() + " )");
+            //System.out.println("Succès ! (Sous) coalition formée avec " + this.agent.getCoalitionSize() + " membres. ( " + this.agent.getCoalitionId() + " )");
             return 1; 
         } else {
-            System.out.println("Échec... personne n'a répondu. Tentative de re-ping.");
+            //System.out.println("Échec... personne n'a répondu. Tentative de re-ping.");
             return 0; 
         }
     }

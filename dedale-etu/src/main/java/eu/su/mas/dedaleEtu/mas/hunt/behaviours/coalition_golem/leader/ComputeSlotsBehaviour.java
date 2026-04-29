@@ -23,7 +23,7 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
 
         // 1. VERIFICATION CRITIQUE : Est-ce que je connais la position du Golem ?
         if (map.getG().getNode(golemPos) == null) {
-            System.err.println(myagent.getLocalName() + " - Planification impossible : Golem sur un noeud inconnu (" + golemPos + ")");
+            //System.err.println(myagent.getLocalName() + " - Planification impossible : Golem sur un noeud inconnu (" + golemPos + ")");
             // On met un plan vide .
             this.getDataStore().put("ORDER_GOLEM", new HashMap<String, String>());
             return;
@@ -37,7 +37,7 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
             if (map.getG().getNode(pos) != null && !agentNode.hasEdgeBetween(golemPos)) {
                 validCoalition.put(agentId, pos);
             } else {
-                System.out.println("Avertissement : Agent " + agentId + " ignore car position inconnue (" + pos + ")");
+                //System.out.println("Avertissement : Agent " + agentId + " ignore car position inconnue (" + pos + ")");
             }
         }
         
@@ -46,21 +46,21 @@ public class ComputeSlotsBehaviour extends OneShotBehaviour {
         int validSize = validCoalition.size();
         HashMap<String,String> plan = new HashMap<>();
         if (validSize > 0) {
-            System.out.println(this.myagent.getLocalName() +  " -> Calcul du plan en cours... ( " + this.myagent.getCoalitionId() + " )");
+            //System.out.println(this.myagent.getLocalName() +  " -> Calcul du plan en cours... ( " + this.myagent.getCoalitionId() + " )");
             String bestChokePoint = golemPos;
             if (bestChokePoint != null) {
                 this.myagent.setOrderTarget(bestChokePoint);
-                System.out.println(this.myagent.getLocalName() +  " -> Début de l'allocation ( " + this.myagent.getCoalitionId() + " )");
+                //System.out.println(this.myagent.getLocalName() +  " -> Début de l'allocation ( " + this.myagent.getCoalitionId() + " )");
                 plan = map.chokePointAllocation(validCoalition, bestChokePoint, this.myagent.getCurrentPosition().getLocationId());
-                System.out.println(this.myagent.getLocalName() +  " -> Allocation terminée ( " + this.myagent.getCoalitionId()
-                        + " )");
+                //System.out.println(this.myagent.getLocalName() +  " -> Allocation terminée ( " + this.myagent.getCoalitionId()
+                        //+ " )");
             }
             else{
-                System.out.println("Aucun plan trouvé");
+                //System.out.println("Aucun plan trouvé");
             }
         }
         else{
-            System.err.println("Aucun membre de la coalition n'a une position connue, on attends la prochaine coalition ");
+            //System.err.println("Aucun membre de la coalition n'a une position connue, on attends la prochaine coalition ");
         }
         this.getDataStore().put("ORDER_GOLEM", plan);
         if(getDataStore().get("ORDER_GOLEM") == null) System.out.println("PLAN NULL");

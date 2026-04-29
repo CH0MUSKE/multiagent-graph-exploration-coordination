@@ -44,15 +44,15 @@ public class WaitingOrderBehaviour extends SimpleBehaviour {
                     this.agent.setOrderTarget(order);
                     this.finished = true;
                     this.getDataStore().put("ORDER_GOLEM", plan);
-                    System.out.println("plan reçu, je me dirige vers: " + order);
+                    //System.out.println("plan reçu, je me dirige vers: " + order);
                     return;
 
                 } catch (UnreadableException e) {
-                    System.err.println("Erreur de désérialisation : " + e.getMessage());
+                    //System.err.println("Erreur de désérialisation : " + e.getMessage());
                 }
             }
             else{
-                System.out.println("Plan reçu mais convId invalide");
+                //System.out.println("Plan reçu mais convId invalide");
             }
             msg = this.myAgent.receive(template);
         }

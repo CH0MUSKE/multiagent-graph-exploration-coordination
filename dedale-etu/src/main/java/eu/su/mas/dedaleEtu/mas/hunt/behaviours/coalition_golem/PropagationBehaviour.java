@@ -30,7 +30,7 @@ public class PropagationBehaviour extends OneShotBehaviour {
     public void action(){
         this.conversation_id = this.agent.getCoalitionId();
         if(this.depth <= 0 || this.agentList == null || this.agentList.isEmpty() || this.timeout <= 0){
-            System.out.println(this.agent.getLocalName() +  " -- Erreur: depth <= 1 ou agentList vide ou timeout <= 0");
+            //System.out.println(this.agent.getLocalName() +  " -- Erreur: depth <= 1 ou agentList vide ou timeout <= 0");
             this.exitValue = 0;
             return;
         }
