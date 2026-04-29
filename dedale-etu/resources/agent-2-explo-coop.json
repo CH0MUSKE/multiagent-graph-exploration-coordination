@@ -2,7 +2,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo1",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -16,7 +16,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo2",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -30,7 +30,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo3",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -44,7 +44,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo4",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -58,7 +58,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo5",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -72,7 +72,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo6",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -86,7 +86,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo7",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -100,7 +100,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo8",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -114,7 +114,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo9",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -128,7 +128,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo10",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -142,7 +142,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo11",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -156,7 +156,7 @@
   {
     "agentType": "agentExplo",
     "agentName": "Explo12",
-    "agentClass": "dummies.explo.ExploreCoopAgent2",
+    "agentClass": "hunt.agents.GolemHunterAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 6,
     "initialLocation": "free",
@@ -170,7 +170,7 @@
   {
     "agentType": "wumpus",
     "agentName": "Golem",
-    "agentClass": "dummies.DummyMovingAgent",
+    "agentClass": "hunt.agents.DummyMovingAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 3,
     "initialLocation": "free",
@@ -184,7 +184,7 @@
   {
     "agentType": "wumpus",
     "agentName": "Golem2",
-    "agentClass": "dummies.DummyMovingAgent",
+    "agentClass": "hunt.agents.DummyMovingAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 3,
     "initialLocation": "free",
@@ -198,7 +198,7 @@
   {
     "agentType": "wumpus",
     "agentName": "Golem3",
-    "agentClass": "dummies.DummyMovingAgent",
+    "agentClass": "hunt.agents.DummyMovingAgent",
     "agentInitialContainer": "container2",
     "communicationRange": 3,
     "initialLocation": "free",

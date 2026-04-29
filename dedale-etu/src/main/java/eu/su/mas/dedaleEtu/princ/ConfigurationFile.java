@@ -156,7 +156,7 @@ public final class ConfigurationFile {
 	/**
 	 * All agent classes developed by users should be added in the "agents" package
 	 */
-	public static final String DEFAULT_AGENTS_CLASSPATH="eu.su.mas.dedaleEtu.mas.agents.";
+	public static final String DEFAULT_AGENTS_CLASSPATH="eu.su.mas.dedaleEtu.mas.";
 	
 	/**
 	 * Must'nt be null as it describes the native agents' capabilities 

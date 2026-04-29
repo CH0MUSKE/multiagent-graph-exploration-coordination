@@ -11,11 +11,10 @@ import eu.su.mas.dedale.env.gs.GsLocation;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.behaviours.ShareMapBehaviour;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.MapRepresentation;
 
-import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.NodeInfo;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;

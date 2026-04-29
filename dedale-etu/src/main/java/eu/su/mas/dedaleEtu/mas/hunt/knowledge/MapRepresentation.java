@@ -1,11 +1,9 @@
-package eu.su.mas.dedaleEtu.mas.knowledge;
+package eu.su.mas.dedaleEtu.mas.hunt.knowledge;
 
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent2;
 import org.graphstream.algorithm.Dijkstra;
 import org.graphstream.graph.Edge;
 import org.graphstream.graph.EdgeRejectedException;
@@ -18,11 +16,9 @@ import org.graphstream.ui.fx_viewer.FxViewPanel;
 import org.graphstream.ui.fx_viewer.FxViewer;
 import org.graphstream.ui.javafx.FxGraphRenderer;
 import org.graphstream.ui.view.Viewer;
-import org.graphstream.ui.view.Viewer.CloseFramePolicy;
 
 import dataStructures.serializableGraph.*;
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedale.mas.agent.knowledge.MapRepresentation.MapAttribute;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
@@ -664,7 +660,7 @@ public class MapRepresentation implements Serializable {
 		for (org.graphstream.graph.Node neighbor : neighbors) {
 			String entityType = (String) neighbor.getAttribute("entityType");
 			boolean isBlocked = (boolean) neighbor.getAttribute("blocked");
-			if (!(NodeInfo.Entity.AGENT.toString().equals(entityType) || isBlocked)) {
+			if (!(!NodeInfo.Entity.EMPTY.toString().equals(entityType) || isBlocked)) {
 				return false;
 			}
 		}

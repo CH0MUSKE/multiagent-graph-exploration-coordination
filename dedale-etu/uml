@@ -1,0 +1,145 @@
+@startuml
+!theme plain
+top to bottom direction
+
+' Paramètres de rendu pour compacter
+skinparam linetype polyline
+skinparam nodesep 50
+skinparam ranksep 70
+
+' --- PACKAGES & CLASSES ---
+
+package "agents" {
+    class AbstractCommunicationAgent {
+        + stopCurrentCoalition(): void
+        + resetCoalitionData(): void
+        + startCoalition(Behaviour, Status, String, String, String, String): void
+        - coalitionId: String
+        - orderTarget: String
+        - golemPos: String
+        - globalEstimatedGolemSmell: int
+        - parent: String
+        - leaderId: String
+        - currentCoalitionBehaviour: Behaviour
+        - children: List<String>
+        - coalition: HashMap<String, String>
+        - status: Status
+        - coalitionSize: int
+    }
+    enum Status << enumeration >> {
+            + EXPLORING
+            + HUNTING
+            + BLOCKING
+        }
+    class GolemHunterAgent
+}
+
+package "knowledge" {
+    class MapRepresentation {
+        + mergeMap(String, SerializableSimpleGraph): void
+        + hasOpenNode(): boolean
+        + filterExplainedSmells(Map, int): List<String>
+        + chokePointAllocation(HashMap, String, String): HashMap
+        + getShortestPath(String, String): List<String>
+        + isGolemSurrounded(String): boolean
+        + selectBestChokePoint(String, int): String
+    }
+    class NodeInfo {
+            - statut: MapAttribute
+            - lastUpdate: long
+            - entityType: Entity
+            - entityId: String
+            - smell: int
+            - blockedLastUpdate: long
+            - blocked: boolean
+    }
+    
+    enum Entity << enumeration >> {
+        + EMPTY
+        + GOLEM
+        + AGENT
+    }
+    
+    enum MapAttribute << enumeration >> {
+        + OPEN
+        + CLOSED
+    }
+}
+
+package "behaviours" {
+    package "coalition_golem" {
+        package "leader" {
+            class CoalitionLeaderGolemBehaviour
+            class ComputeSlotsBehaviour
+        }
+        package "participant" {
+            class CoalitionParticipantGolemBehaviour
+            class SendEchoBehaviour
+            class WaitingOrderBehaviour
+        }
+        class PropagationBehaviour
+        class ReceiveEchoBehaviour
+        class SendOrdersBehaviour
+    }
+    
+    class ListenerBehaviour {
+        - ackHandler(ACLMessage): void
+        - pingHandler(ACLMessage): void
+        - smellHandler(ACLMessage): void
+    }
+    class MainHuntingBehaviour {
+        - findExploNextNode(String, List<String>): String?
+    }
+    class PingBehaviour
+    class SendMsgBehaviour
+}
+
+package "utils" {
+    class MessageFactory {
+        + buildMsg(...): ACLMessage
+        + buildMultiProtocolTemplate(...): MessageTemplate
+    }
+}
+
+package "princ" {
+    class ConfigurationFile
+    class Principal
+}
+
+' --- RELATIONS ---
+
+' Héritage
+AbstractCommunicationAgent ^-- GolemHunterAgent
+AbstractCommunicationAgent +-- Status
+AbstractCommunicationAgent ^-- GolemHunterAgent
+
+' Composition & Connaissance
+AbstractCommunicationAgent "1" *-- "1" MapRepresentation : myMap
+MapRepresentation "1" *-- "many" NodeInfo
+NodeInfo "1" *-- "1" Entity : entityType
+NodeInfo "1" *-- "1" MapAttribute : statut
+
+' Créations (Dashed lines)
+GolemHunterAgent ..> ListenerBehaviour : «create»
+GolemHunterAgent ..> MainHuntingBehaviour : «create»
+
+MainHuntingBehaviour ..> CoalitionLeaderGolemBehaviour : «create»
+MainHuntingBehaviour ..> PingBehaviour : «create»
+MainHuntingBehaviour ..> SendMsgBehaviour : «create»
+
+ListenerBehaviour ..> CoalitionParticipantGolemBehaviour : «create»
+ListenerBehaviour ..> SendMsgBehaviour : «create»
+
+CoalitionLeaderGolemBehaviour ..> ComputeSlotsBehaviour : «create»
+CoalitionLeaderGolemBehaviour ..> PropagationBehaviour : «create»
+CoalitionLeaderGolemBehaviour ..> ReceiveEchoBehaviour : «create»
+CoalitionLeaderGolemBehaviour ..> SendOrdersBehaviour : «create»
+
+CoalitionParticipantGolemBehaviour ..> PropagationBehaviour : «create»
+CoalitionParticipantGolemBehaviour ..> SendEchoBehaviour : «create»
+CoalitionParticipantGolemBehaviour ..> WaitingOrderBehaviour : «create»
+
+' Liens vers l'Agent (pour la lisibilité, on utilise un trait simple)
+behaviours ..> AbstractCommunicationAgent : "access agent data"
+
+@enduml

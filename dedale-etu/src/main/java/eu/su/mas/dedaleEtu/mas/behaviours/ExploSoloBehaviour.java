@@ -1,19 +1,16 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.GsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import eu.su.mas.dedaleEtu.mas.knowledge.NodeInfo;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.MapRepresentation.MapAttribute;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.NodeInfo;
 import jade.core.behaviours.SimpleBehaviour;
 
 

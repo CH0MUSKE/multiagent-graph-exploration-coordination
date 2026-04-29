@@ -1,17 +1,16 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import eu.su.mas.dedale.env.EntityCharacteristics;
-import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.StartMyBehaviours;
-import eu.su.mas.dedaleEtu.mas.behaviours.ListenerBehaviour;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.hunt.agents.AbstractCommunicationAgent;
+import eu.su.mas.dedaleEtu.mas.hunt.behaviours.ListenerBehaviour;
+import eu.su.mas.dedaleEtu.mas.hunt.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
 
-public class ControlledAgent2 extends AbstractCommunicationAgent{
+public class ControlledAgent2 extends AbstractCommunicationAgent {
     
     private static final long serialVersionUID = 728177281660199801L;
 
