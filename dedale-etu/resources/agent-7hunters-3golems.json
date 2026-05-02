@@ -1,8 +1,7 @@
 [
-{ 
-  "agentType":"agentExplo",
+{ "agentType": "agentExplo",
   "agentName": "Hunt1",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+  "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 2,
   "initialLocation": "70",
@@ -11,12 +10,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param1"]
+  "userParameters": ["Hunt2", "Hunt3", "Hunt4", "Hunt5", "Hunt6", "Hunt7"]
   },
-{ 
-  "agentType":"agentExplo",
+{     "agentType": "agentExplo",
   "agentName": "Hunt2",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+  "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 2,
   "initialLocation": "71",
@@ -25,12 +23,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+  "userParameters": ["Hunt1", "Hunt3", "Hunt4", "Hunt5", "Hunt6", "Hunt7"]
   },
-{ 
-  "agentType":"agentExplo",
+{     "agentType": "agentExplo",
   "agentName": "Hunt3",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+  "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 2,
   "initialLocation": "76",
@@ -39,12 +36,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+  "userParameters": ["Hunt2", "Hunt1", "Hunt4", "Hunt5", "Hunt6", "Hunt7"]
   },
-  { 
-  "agentType":"agentExplo",
+  {     "agentType": "agentExplo",
   "agentName": "Hunt4",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+    "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 1,
   "initialLocation": "j11",
@@ -53,12 +49,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+    "userParameters": ["Hunt2", "Hunt3", "Hunt1", "Hunt5", "Hunt6", "Hunt7"]
   },
-  { 
-  "agentType":"agentExplo",
+  {     "agentType": "agentExplo",
   "agentName": "Hunt5",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+    "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 1,
   "initialLocation": "h40",
@@ -67,12 +62,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+    "userParameters": ["Hunt2", "Hunt3", "Hunt4", "Hunt1", "Hunt6", "Hunt7"]
   },
-  { 
-  "agentType":"agentExplo",
+  {     "agentType": "agentExplo",
   "agentName": "Hunt6",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+    "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 3,
   "initialLocation": "M11",
@@ -81,12 +75,11 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+    "userParameters": ["Hunt2", "Hunt3", "Hunt4", "Hunt5", "Hunt1", "Hunt7"]
   },
-  { 
-  "agentType":"agentExplo",
+  {     "agentType": "agentExplo",
   "agentName": "Hunt7",
-  "agentClass":"dummies.explo.ExploreSoloAgent",
+    "agentClass":"hunt.agents.GolemHunterAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 2,
   "initialLocation": "88",
@@ -95,12 +88,12 @@
   "detectionRadius": 0,
   "strengthExpertise": 1,
   "lockPickingExpertise":1,
-  "userParameters": ["param2","param3"]
+    "userParameters": ["Hunt2", "Hunt3", "Hunt4", "Hunt5", "Hunt6", "Hunt1"]
   },
   { 
   "agentType":"wumpus",
   "agentName": "Golem",
-   "agentClass":"dummies.DummyMovingAgent",
+   "agentClass":"hunt.agents.DummyMovingAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 3,
   "initialLocation": "10",
@@ -114,7 +107,7 @@
   { 
   "agentType":"wumpus",
   "agentName": "Golem2",
-   "agentClass":"dummies.DummyMovingAgent",
+   "agentClass":"hunt.agents.DummyMovingAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 3,
   "initialLocation": "j1",
@@ -128,7 +121,7 @@
   { 
   "agentType":"wumpus",
   "agentName": "Golem3",
-   "agentClass":"dummies.DummyMovingAgent",
+   "agentClass":"hunt.agents.DummyMovingAgent",
   "agentInitialContainer":"container2",
   "communicationRange": 3,
   "initialLocation": "M3",
