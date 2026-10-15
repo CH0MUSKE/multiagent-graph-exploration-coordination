@@ -5,7 +5,7 @@ An autonomous, decentralized Multi-Agent System (MAS) built on the **Dedale** pl
 * **Author:** Thomas LU
 * **Institution:** Sorbonne University (M.Sc. in Computer Science / Robotics & AI — LIP6)
 * **Framework:** Java, JADE, Dedale Platform, GraphStream
-* 📄 **[Read the Full Technical Report (PDF) (OG french version)](./report_french_vers.pdf)**
+* 📄 **[Read the Full Technical Report (PDF) (OG french version)](./report_french_version.pdf)**
 or **[english ai translated version](./report_eng_vers_ai_translated.pdf)**
 
 ---
