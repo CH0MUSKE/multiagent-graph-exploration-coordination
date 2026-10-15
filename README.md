@@ -72,7 +72,7 @@ The architecture enforces strict decoupling between spatial knowledge, decision-
 ├── doc/                         # Technical architecture documentation and UML diagrams
 ├── pom.xml                      # Maven build configuration
 └── README.md
-
+```
 ## 🚀 Build & Execution
 
 ### Prerequisites
