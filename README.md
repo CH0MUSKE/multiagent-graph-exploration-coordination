@@ -5,6 +5,8 @@ An autonomous, decentralized Multi-Agent System (MAS) built on the **Dedale** pl
 * **Author:** Thomas LU
 * **Institution:** Sorbonne University (M.Sc. in Computer Science / Robotics & AI — LIP6)
 * **Framework:** Java, JADE, Dedale Platform, GraphStream
+* 📄 **[Read the Full Technical Report (PDF) (OG french version)](./report_french_vers.pdf)**
+or **[english ai translated version](./report_eng_vers_ai_translated.pdf)**
 
 ---
 
@@ -85,6 +87,7 @@ The architecture enforces strict decoupling between spatial knowledge, decision-
 git clone [https://gitlab.com/thomaslu1245/dedale-etu-thomas-lu.git](https://gitlab.com/thomaslu1245/dedale-etu-thomas-lu.git)
 cd dedale-etu-thomas-lu
 mvn clean install
+```
 
 ### Run Simulation
 Launch the platform entry point directly via Maven:
